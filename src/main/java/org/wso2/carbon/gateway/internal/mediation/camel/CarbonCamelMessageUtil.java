@@ -21,6 +21,9 @@ package org.wso2.carbon.gateway.internal.mediation.camel;
 import org.apache.camel.Exchange;
 import org.apache.camel.util.ObjectHelper;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.gateway.internal.common.CarbonMessage;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
+import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.net.URI;
 import java.net.URISyntaxException;

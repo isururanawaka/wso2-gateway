@@ -22,6 +22,8 @@ import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.gateway.internal.common.*;
+import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,9 +40,9 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers =
             new ConcurrentHashMap<String, CamelMediationConsumer>();
 
-    public CamelMediationEngine(Sender sender) {
+    public CamelMediationEngine(TransportSender sender) {
         this.sender = sender;
-        this.sender.setCarbonMessageProcessor(this);
+       // this.sender.setCarbonMessageProcessor(this);
     }
 
     @Override public boolean init(TransportSender sender) {
@@ -71,7 +73,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
         return true;
     }
 
-    @Override public TransportSender getSender() {
+    public TransportSender getSender() {
         return sender;
     }
 
