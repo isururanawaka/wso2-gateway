@@ -40,6 +40,6 @@ public class CamelMediationComponent extends DefaultComponent {
     @Override protected void doStart() throws Exception {
         super.doStart();
         //start netty transport from here get a CamelMediationEngine object and set it to engine.
-        this.engine = (CamelMediationEngine) new POCController().startPOCController();
+        //this.engine = (CamelMediationEngine) new POCController().startPOCController();
     }
 }

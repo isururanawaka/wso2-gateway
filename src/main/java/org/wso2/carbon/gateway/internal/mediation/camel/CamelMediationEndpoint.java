@@ -21,6 +21,7 @@ package org.wso2.carbon.gateway.internal.mediation.camel;
 import org.apache.camel.*;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 
 import java.util.Map;
 
