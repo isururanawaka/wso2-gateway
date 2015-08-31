@@ -67,11 +67,10 @@
                             org.osgi.util.tracker; version="${osgi.service.tracker.import.version.range}",
                             io.netty.*,
                             org.wso2.carbon.transports.*,
+                            org.wso2.carbon.transport.http.netty.*,
                             org.apache.log4j.*,
                             org.apache.commons.logging.*,
-                            org.xml.sax.*,
-                            javax.xml.parsers.*,
-                            javax.net.ssl.*
+                            org.slf4j.*
                         </Import-Package>
                         <_dsannotations>*</_dsannotations>
                     </instructions>
