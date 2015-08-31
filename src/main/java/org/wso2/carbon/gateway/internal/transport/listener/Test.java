@@ -16,7 +16,7 @@
  *  under the License.
  *
  */
-package org.wso2.carbon.gateway.internal.disruptor;
+package org.wso2.carbon.gateway.internal.transport.listener;
 
 /**
  * TODO: class level comment
