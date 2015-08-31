@@ -45,6 +45,38 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-Vendor>WSO2 Inc</Bundle-Vendor>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Activator>org.wso2.carbon.gateway.internal.GatewayActivator</Bundle-Activator>
+                        <Private-Package>
+                            org.wso2.carbon.gateway.internal
+                        </Private-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.gateway.internal,
+                            org.wso2.carbon.gateway.*
+                        </Export-Package>
+                        <Import-Package>
+                            org.osgi.framework.*;version="${osgi.framework.import.version.range}",
+                            org.osgi.util.tracker; version="${osgi.service.tracker.import.version.range}",
+                            io.netty.*,
+                            org.wso2.carbon.transports.*,
+                            org.apache.log4j.*,
+                            org.apache.commons.logging.*,
+                            org.xml.sax.*,
+                            javax.xml.parsers.*,
+                            javax.net.ssl.*
+                        </Import-Package>
+                        <_dsannotations>*</_dsannotations>
+                    </instructions>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -59,11 +91,59 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
             <version>${equinox.osgi.services.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wso2.orbit.com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>${disruptor.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>${camel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
     </dependencies>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <equinox.osgi.version>3.9.1.v20130814-1242</equinox.osgi.version>
         <equinox.osgi.services.version>3.3.100.v20130513-1956</equinox.osgi.services.version>
+        <netty.version>4.0.30.Final</netty.version>
+        <disruptor.version>3.3.2.wso2v2</disruptor.version>
+        <camel.version>2.15.2</camel.version>
+        <slf4j.version>1.7.5</slf4j.version>
     </properties>
 </project>
