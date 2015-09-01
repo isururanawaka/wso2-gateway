@@ -88,16 +88,13 @@ public class GatewayActivator implements BundleActivator {
 
             });
             context.start();
+            GateWayNettyInitializer gateWayNettyInitializer = new GateWayNettyInitializer(engine, config.getQueueSize());
+            bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, null);
 
-            while (true) {
-                Thread.sleep(100000);
-            }
         } catch (Exception e) {
             //  LOG.error("Error Starting camel context ... ", e);
         }
-        GateWayNettyInitializer gateWayNettyInitializer = new GateWayNettyInitializer(engine, config.getQueueSize());
-        bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, null);
-
+        
     }
 
     public void stop(BundleContext bundleContext) throws Exception {
