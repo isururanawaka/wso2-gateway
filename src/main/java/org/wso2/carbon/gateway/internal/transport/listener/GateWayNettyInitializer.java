@@ -15,52 +15,49 @@
 package org.wso2.carbon.gateway.internal.transport.listener;
 
 
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
+import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
 
 /**
  * A class that responsible for create server side channels.
  */
-public class SourceInitializer extends ChannelInitializer<SocketChannel> {
+public class GateWayNettyInitializer implements CarbonNettyServerInitializer {
 
-    private static final Logger log = Logger.getLogger(SourceInitializer.class);
+    private static final Logger log = Logger.getLogger(GateWayNettyInitializer.class);
 
     private CarbonMessageProcessor engine;
     private int noOfChannels;
     private int queueSize;
     private final Object lock = new Object();
 
-    public SourceInitializer(CarbonMessageProcessor engine , int queueSize) {
+
+    public GateWayNettyInitializer(CarbonMessageProcessor engine, int queueSize) {
         this.engine = engine;
         this.queueSize = queueSize;
     }
 
     @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
+    public void initChannel(SocketChannel ch) {
         if (log.isDebugEnabled()) {
             log.info("Initializing source channel pipeline");
         }
-     //   Disruptor disruptor = DisruptorFactory.getInboundDisruptor();
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
-
-    //    p.addLast("handler", new SourceHandler(engine,null));
-
-        //TODO Test adding event executor group as below
-//        p.addLast(new DefaultEventExecutorGroup(10), "handler", new SourceHandler(engine));
-        synchronized (lock){
+        synchronized (lock) {
             noOfChannels++;
-            p.addLast("handler", new SourceHandler(noOfChannels ,queueSize));
+            try {
+                p.addLast("handler", new SourceHandler(noOfChannels, queueSize));
+            } catch (Exception e) {
+                log.error("Cannot Create SourceHandler ", e);
+            }
         }
-
-
     }
 
 }

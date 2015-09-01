@@ -31,11 +31,6 @@ public class Constants {
 
     public static final String ENGINE = "Engine";
 
-    public static final String STATE_TRANSITION = "STATE_TRANSITION";
-
-    public static final String STATE_STARTED = "STATE_STARTED";
-
-    public static final String STATE_STOPPED = "STATE_STOPPED";
 
     public static final String RESPONSE_CALLBACK = "RESPONSE_CALLBACK";
 

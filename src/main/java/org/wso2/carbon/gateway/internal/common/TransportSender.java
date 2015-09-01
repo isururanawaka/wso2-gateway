@@ -20,18 +20,9 @@ public abstract class TransportSender {
     private static Logger log = Logger.getLogger(TransportSender.class);
 
     private String protocol;
-    private CarbonMessageProcessor engine;
 
     public TransportSender(String protocol) {
         this.protocol = protocol;
-    }
-
-    public CarbonMessageProcessor getEngine() {
-        return engine;
-    }
-
-    public void setEngine(CarbonMessageProcessor engine) {
-        this.engine = engine;
     }
 
     public String getProtocol() { return protocol; }
