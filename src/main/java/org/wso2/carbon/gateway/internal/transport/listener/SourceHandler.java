@@ -56,11 +56,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private DisruptorConfig disruptorConfig;
     private Object lock = new Object();
 
-    public SourceHandler(int srcId, int queueSize) throws Exception {
+    public SourceHandler(CarbonMessageProcessor engine,int srcId, int queueSize) throws Exception {
       //  this.engine = NettyTransportDataHolder.getInstance().getEngine();
         if(engine == null){
             throw new Exception("Cannot find registered Engine");
         }
+        this.engine = engine;
         this.srcId = srcId;
         this.queueSize = queueSize;
     }

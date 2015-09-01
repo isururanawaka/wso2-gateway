@@ -21,7 +21,8 @@ package org.wso2.carbon.gateway.internal.mediation.camel;
 import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.*;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CamelMediationEngine implements CarbonMessageProcessor {
 
-    private static Logger log = Logger.getLogger(CamelMediationEngine.class);
+    private static Logger log = LoggerFactory.getLogger(CamelMediationEngine.class);
 
     private TransportSender sender;
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers =
