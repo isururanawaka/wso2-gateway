@@ -15,9 +15,9 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.handler;
 
-
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
@@ -26,22 +26,37 @@ public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
 
     private int eventHandlerid;
 
-
     public CarbonDisruptorEventHandler(int eventHandlerid) {
         this.eventHandlerid = eventHandlerid;
     }
 
-    @Override
-    public void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception {
+    @Override public void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception {
         CarbonMessage carbonMessage = (CarbonMessage) carbonDisruptorEvent.getEvent();
         int messageID = carbonDisruptorEvent.getEventId();
-        if (carbonMessage.getDirection() == CarbonMessage.IN && canProcess(DisruptorFactory.getDisruptorConfig
-                   (Constants.LISTENER).getNoOfEventHandlersPerDisruptor(), eventHandlerid, messageID)) {
-        } else if ((canProcess(DisruptorFactory.getDisruptorConfig(Constants.SENDER).getNoOfEventHandlersPerDisruptor(), eventHandlerid, messageID))) {
+        if (carbonMessage.getDirection() == CarbonMessage.IN &&
+            canProcess(DisruptorFactory.getDisruptorConfig(Constants.LISTENER).getNoOfEventHandlersPerDisruptor(),
+                       eventHandlerid, messageID)) {
+            CarbonMessageProcessor engine = (CarbonMessageProcessor) carbonMessage.getProperty(Constants.ENGINE);
+            CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
+            engine.receive(carbonMessage, carbonCallback);
+        } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
+                   DisruptorFactory.getDisruptorConfig(Constants.SENDER) != null &&
+                   canProcess(DisruptorFactory.getDisruptorConfig(Constants.SENDER).getNoOfEventHandlersPerDisruptor(),
+                              eventHandlerid, messageID)) {
+
             CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
             carbonCallback.done(carbonMessage);
+
+        } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
+                   DisruptorFactory.getDisruptorConfig(Constants.SENDER) == null && canProcess(
+                DisruptorFactory.getDisruptorConfig(Constants.LISTENER).getNoOfEventHandlersPerDisruptor(),
+                eventHandlerid, messageID)) {
+            CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
+            carbonCallback.done(carbonMessage);
+
         }
 
     }
+
 }
 
