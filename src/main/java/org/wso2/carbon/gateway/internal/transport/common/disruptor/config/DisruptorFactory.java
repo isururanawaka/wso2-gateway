@@ -32,7 +32,7 @@ public class DisruptorFactory {
 
     private static ConcurrentHashMap<String, DisruptorConfig> disruptorConfigHashMap = new ConcurrentHashMap<String, DisruptorConfig>();
 
-    public static void createInboundDisruptors(String id, DisruptorConfig disruptorConfig) {
+    public static void createDisruptors(String id, DisruptorConfig disruptorConfig) {
         WaitStrategy inbounsWaitStrategy = getWaitStrategy(disruptorConfig.getWaitstrategy());
         for (int i = 0; i < disruptorConfig.getNoDisruptors(); i++) {
             ExecutorService executorService = Executors.newFixedThreadPool(disruptorConfig.getNoOfEventHandlersPerDisruptor());
