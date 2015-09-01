@@ -33,10 +33,13 @@ import org.wso2.carbon.gateway.internal.transport.listener.GateWayNettyInitializ
 import org.wso2.carbon.gateway.internal.transport.sender.NettySender;
 import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
+import java.util.Hashtable;
 import java.util.Properties;
 
 
 public class GatewayActivator implements BundleActivator {
+    private static final String CHANNEL_ID_KEY = "channel.id";
+
     public void start(BundleContext bundleContext) throws Exception {
         Properties props = new Properties();
         String waitstrategy = props.getProperty("wait_strategy", Constants.PHASED_BACKOFF);
@@ -88,15 +91,14 @@ public class GatewayActivator implements BundleActivator {
 
             });
             context.start();
+            Hashtable<String, String> httpInitParams = new Hashtable<>();
+            httpInitParams.put(CHANNEL_ID_KEY, "netty-gw");
+            GateWayNettyInitializer gateWayNettyInitializer = new GateWayNettyInitializer(engine, config.getQueueSize());
+            bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, httpInitParams);
 
-            while (true) {
-                Thread.sleep(100000);
-            }
         } catch (Exception e) {
             //  LOG.error("Error Starting camel context ... ", e);
         }
-        GateWayNettyInitializer gateWayNettyInitializer = new GateWayNettyInitializer(engine, config.getQueueSize());
-        bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, null);
 
     }
 

@@ -14,7 +14,8 @@
  */
 package org.wso2.carbon.gateway.internal.common;
 
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
 
 public abstract class TransportSender {
     private static Logger log = Logger.getLogger(TransportSender.class);
