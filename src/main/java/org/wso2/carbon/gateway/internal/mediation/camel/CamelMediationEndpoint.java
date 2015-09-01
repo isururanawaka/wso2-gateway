@@ -20,7 +20,8 @@ package org.wso2.carbon.gateway.internal.mediation.camel;
 
 import org.apache.camel.*;
 import org.apache.camel.impl.DefaultEndpoint;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.Map;
  */
 public class CamelMediationEndpoint extends DefaultEndpoint {
 
-    private static Logger log = Logger.getLogger(CamelMediationEndpoint.class);
+    private static Logger log = LoggerFactory.getLogger(CamelMediationEndpoint.class);
 
     private CamelMediationEngine engine;
     private CarbonCamelMessageUtil carbonCamelMessageUtil;

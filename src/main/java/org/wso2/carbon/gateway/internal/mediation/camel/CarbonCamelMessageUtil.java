@@ -20,7 +20,8 @@ package org.wso2.carbon.gateway.internal.mediation.camel;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.util.ObjectHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CarbonCamelMessageUtil {
 
-    private static Logger log = Logger.getLogger(CarbonCamelMessageUtil.class);
+    private static Logger log = LoggerFactory.getLogger(CarbonCamelMessageUtil.class);
 
     //get carbon headers from client request and set in the camel exchange in message
     public void setCamelHeadersToClientRequest(Exchange exchange, Map<String, Object> transportHeaders,

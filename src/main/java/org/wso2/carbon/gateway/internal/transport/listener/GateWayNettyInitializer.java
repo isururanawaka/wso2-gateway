@@ -53,7 +53,7 @@ public class GateWayNettyInitializer implements CarbonNettyServerInitializer {
         synchronized (lock) {
             noOfChannels++;
             try {
-                p.addLast("handler", new SourceHandler(noOfChannels, queueSize));
+                p.addLast("handler", new SourceHandler(engine,noOfChannels, queueSize));
             } catch (Exception e) {
                 log.error("Cannot Create SourceHandler ", e);
             }
