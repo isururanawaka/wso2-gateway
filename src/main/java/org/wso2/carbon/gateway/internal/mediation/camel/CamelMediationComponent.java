@@ -30,6 +30,10 @@ public class CamelMediationComponent extends DefaultComponent {
 
     CamelMediationEngine engine;
 
+    public CamelMediationComponent(CamelMediationEngine engine) {
+        this.engine = engine;
+    }
+
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         Endpoint endpoint = new CamelMediationEndpoint(uri, this, engine);
         setProperties(endpoint, parameters);
