@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.wso2.carbon.gateway.internal.transport.listener;
@@ -20,13 +20,12 @@ import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
+import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
 import org.wso2.carbon.gateway.internal.transport.common.HttpRoute;
@@ -60,7 +59,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private Object lock = new Object();
 
     public SourceHandler(CarbonMessageProcessor engine, int srcId, int queueSize) throws Exception {
-        //  this.engine = NettyTransportDataHolder.getInstance().getEngine();
         if (engine == null) {
             throw new Exception("Cannot find registered Engine");
         }
@@ -71,11 +69,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-        disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.LISTENER);
+        disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.INBOUND);
         disruptor = disruptorConfig.getDisruptor();
         this.ctx = ctx;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
@@ -93,7 +92,8 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg.setProperty(Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
             cMsg.setProperty(Constants.HTTP_METHOD, httpRequest.getMethod().name());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
-            PipeImpl pipe = new PipeImpl("Source Pipe", queueSize);
+            Pipe pipe = new PipeImpl(queueSize);
+
             cMsg.setPipe(pipe);
             if (disruptorConfig.isShared()) {
                 cMsg.setProperty(Constants.DISRUPTOR, disruptor);
@@ -102,22 +102,13 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
-                if (msg instanceof LastHttpContent) {
-                    LastHttpContent lastHttpContent = (LastHttpContent) msg;
-                    HttpHeaders trailingHeaders = lastHttpContent.trailingHeaders();
-                    for (String val : trailingHeaders.names()) {
-                        ((PipeImpl) cMsg.getPipe()).
-                                addTrailingHeader(val, trailingHeaders.get(val));
-                    }
-                    chunk = new HTTPContentChunk(lastHttpContent);
-                } else {
+                if (msg instanceof HttpContent) {
                     HttpContent httpContent = (HttpContent) msg;
                     chunk = new HTTPContentChunk(httpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
                 }
-                cMsg.getPipe().addContentChunk(chunk);
             }
         }
-
     }
 
     @Override

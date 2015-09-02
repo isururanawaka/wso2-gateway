@@ -15,6 +15,7 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.config;
 
+
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventHandler;
@@ -26,6 +27,7 @@ import com.lmax.disruptor.TimeoutBlockingWaitStrategy;
 import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.exception.GenericExceptionHandler;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.handler.CarbonDisruptorEventHandler;
@@ -35,24 +37,27 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+
+
 /**
- * TODO class level comment.
+ * Util Class creates Disruptors for Inbound and Outbound Transports
  */
 public class DisruptorFactory {
 
     private static ConcurrentHashMap<String, DisruptorConfig> disruptorConfigHashMap = new ConcurrentHashMap<>();
 
+    @SuppressWarnings("unchecked")
     public static void createDisruptors(String id, DisruptorConfig disruptorConfig) {
-        WaitStrategy inbounsWaitStrategy = getWaitStrategy(disruptorConfig.getWaitstrategy());
+        WaitStrategy inbounsWaitStrategy = getWaitStrategy(disruptorConfig.getDisruptorWaitStrategy());
         for (int i = 0; i < disruptorConfig.getNoDisruptors(); i++) {
             ExecutorService executorService =
-                    Executors.newFixedThreadPool(disruptorConfig.getNoOfEventHandlersPerDisruptor());
+                       Executors.newFixedThreadPool(disruptorConfig.getNoOfEventHandlersPerDisruptor());
             Disruptor disruptor =
-                    new Disruptor<>(CarbonDisruptorEvent.EVENT_FACTORY,
-                            disruptorConfig.getBufferSize(),
-                            executorService,
-                            ProducerType.MULTI,
-                            inbounsWaitStrategy);
+                       new Disruptor<>(CarbonDisruptorEvent.EVENT_FACTORY,
+                                       disruptorConfig.getBufferSize(),
+                                       executorService,
+                                       ProducerType.MULTI,
+                                       inbounsWaitStrategy);
             ExceptionHandler exh = new GenericExceptionHandler();
             EventHandler[] eventHandlers = new EventHandler[disruptorConfig.getNoOfEventHandlersPerDisruptor()];
             for (int j = 0; j < disruptorConfig.getNoOfEventHandlersPerDisruptor(); j++) {
@@ -69,25 +74,22 @@ public class DisruptorFactory {
     }
 
 
-    private static WaitStrategy getWaitStrategy(WAITSTRATEGY waitstrategy) {
-        WaitStrategy waitStrategy = null;
+    private static WaitStrategy getWaitStrategy(String waitstrategy) {
+        WaitStrategy waitStrategy;
         switch (waitstrategy) {
-            case BLOCKING_WAIT:
+            case Constants.BLOCKING_WAIT:
                 waitStrategy = new BlockingWaitStrategy();
                 break;
-            case BUSY_SPIN:
+            case Constants.BUSY_SPIN:
                 waitStrategy = new BusySpinWaitStrategy();
                 break;
-            case LITE_BLOCKING:
+            case Constants.LITE_BLOCKING:
                 waitStrategy = new LiteBlockingWaitStrategy();
                 break;
-            case PHASED_BACKOFF:
-                waitStrategy = PhasedBackoffWaitStrategy.withLiteLock(1, 4, TimeUnit.SECONDS);
-                break;
-            case SLEEPING_WAIT:
+            case Constants.SLEEP_WAITING:
                 waitStrategy = new SleepingWaitStrategy();
                 break;
-            case TIME_BLOCKING:
+            case Constants.TIME_BLOCKING:
                 waitStrategy = new TimeoutBlockingWaitStrategy(1, TimeUnit.SECONDS);
                 break;
             default:
@@ -97,14 +99,8 @@ public class DisruptorFactory {
         return waitStrategy;
     }
 
-    public static final DisruptorConfig getDisruptorConfig(String id) {
+    public static DisruptorConfig getDisruptorConfig(String id) {
         return disruptorConfigHashMap.get(id);
     }
 
-    /**
-     * TODO class level comment.
-     */
-    public enum WAITSTRATEGY {
-        BLOCKING_WAIT, BUSY_SPIN, LITE_BLOCKING, PHASED_BACKOFF, SLEEPING_WAIT, TIME_BLOCKING
-    }
 }
