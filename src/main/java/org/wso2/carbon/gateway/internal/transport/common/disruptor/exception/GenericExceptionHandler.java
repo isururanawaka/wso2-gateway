@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Exception handler class of the Disruptor
+ * Exception handler class of the Disruptor.
  */
 public class GenericExceptionHandler implements ExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GenericExceptionHandler.class);

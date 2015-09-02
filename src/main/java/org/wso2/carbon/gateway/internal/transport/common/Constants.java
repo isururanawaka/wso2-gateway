@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.transport.common;
 
 /**
- * Common Constants used by gate way
+ * Common Constants used by gate way.
  */
 public class Constants {
     public static final String PROTOCOL_NAME = "http";

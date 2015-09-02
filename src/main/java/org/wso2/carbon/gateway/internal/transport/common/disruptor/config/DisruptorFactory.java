@@ -15,7 +15,6 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.config;
 
-
 import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventHandler;
@@ -37,8 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-
-
 /**
  * Util Class creates Disruptors for Inbound and Outbound Transports
  */
@@ -51,13 +48,13 @@ public class DisruptorFactory {
         WaitStrategy inbounsWaitStrategy = getWaitStrategy(disruptorConfig.getDisruptorWaitStrategy());
         for (int i = 0; i < disruptorConfig.getNoDisruptors(); i++) {
             ExecutorService executorService =
-                       Executors.newFixedThreadPool(disruptorConfig.getNoOfEventHandlersPerDisruptor());
+                    Executors.newFixedThreadPool(disruptorConfig.getNoOfEventHandlersPerDisruptor());
             Disruptor disruptor =
-                       new Disruptor<>(CarbonDisruptorEvent.EVENT_FACTORY,
-                                       disruptorConfig.getBufferSize(),
-                                       executorService,
-                                       ProducerType.MULTI,
-                                       inbounsWaitStrategy);
+                    new Disruptor<>(CarbonDisruptorEvent.EVENT_FACTORY,
+                            disruptorConfig.getBufferSize(),
+                            executorService,
+                            ProducerType.MULTI,
+                            inbounsWaitStrategy);
             ExceptionHandler exh = new GenericExceptionHandler();
             EventHandler[] eventHandlers = new EventHandler[disruptorConfig.getNoOfEventHandlersPerDisruptor()];
             for (int j = 0; j < disruptorConfig.getNoOfEventHandlersPerDisruptor(); j++) {

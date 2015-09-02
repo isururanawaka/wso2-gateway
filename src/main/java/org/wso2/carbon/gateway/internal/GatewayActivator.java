@@ -38,23 +38,25 @@ import java.util.Properties;
  * OSGi Bundle Activator of the gateway Carbon component.
  */
 public class GatewayActivator implements BundleActivator {
-    private static Logger log = LoggerFactory.getLogger(TransportSender.class);
     private static final String CHANNEL_ID_KEY = "channel.id";
+    private static Logger log = LoggerFactory.getLogger(TransportSender.class);
 
     public void start(BundleContext bundleContext) throws Exception {
         Properties props = new Properties();
         String waitstrategy = props.getProperty("wait_strategy", Constants.PHASED_BACKOFF);
 
-        DisruptorConfig disruptorConfig = new DisruptorConfig
-                   (Integer.parseInt(props.getProperty("disruptor_buffer_Size", "1024")),
-                    Integer.parseInt(props.getProperty("no_of_disurptors", "1")),
-                    Integer.parseInt(props.getProperty("no_of_eventHandlers_per_disruptor", "1")), waitstrategy, true);
+        DisruptorConfig disruptorConfig =
+                new DisruptorConfig(Integer.parseInt(props.getProperty("disruptor_buffer_Size", "1024")),
+                        Integer.parseInt(props.getProperty("no_of_disurptors", "1")),
+                        Integer.parseInt(props.getProperty("no_of_eventHandlers_per_disruptor", "1")),
+                        waitstrategy,
+                        true);
         DisruptorFactory.createDisruptors(Constants.INBOUND, disruptorConfig);
 
 
         NettySender.Config config =
-                   new NettySender.Config("netty-gw-sender").
-                              setQueueSize(Integer.parseInt(props.getProperty("queue_size", "32544")));
+                new NettySender.Config("netty-gw-sender").
+                        setQueueSize(Integer.parseInt(props.getProperty("queue_size", "32544")));
         TransportSender sender = new NettySender(config);
         //  Engine engine = new POCMediationEngine(sender);
 
@@ -69,7 +71,7 @@ public class GatewayActivator implements BundleActivator {
             Hashtable<String, String> httpInitParams = new Hashtable<>();
             httpInitParams.put(CHANNEL_ID_KEY, "netty-gw");
             GateWayNettyInitializer gateWayNettyInitializer =
-                       new GateWayNettyInitializer(engine, config.getQueueSize());
+                    new GateWayNettyInitializer(engine, config.getQueueSize());
             bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, httpInitParams);
 
         } catch (Exception e) {

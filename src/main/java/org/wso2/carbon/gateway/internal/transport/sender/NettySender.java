@@ -42,15 +42,12 @@ import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import java.net.InetSocketAddress;
 
 /**
- * A class creates connections with BE and send messages
+ * A class creates connections with BE and send messages.
  */
 public class NettySender implements TransportSender {
     private static final Logger LOG = LoggerFactory.getLogger(NettySender.class);
-
-    private Config config;
-
     private final Object lock = new Object();
-
+    private Config config;
     private int channelCorrelator;
 
 
@@ -87,8 +84,8 @@ public class NettySender implements TransportSender {
     private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
-                   .channel(ctx.channel().getClass())
-                   .handler(targetInitializer);
+                .channel(ctx.channel().getClass())
+                .handler(targetInitializer);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -134,10 +131,10 @@ public class NettySender implements TransportSender {
                 ringBuffer = disruptorConfig.getDisruptor();
             }
             TargetInitializer targetInitializer =
-                       new TargetInitializer(ringBuffer, channelCorrelator, queueSize);
+                    new TargetInitializer(ringBuffer, channelCorrelator, queueSize);
             Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
             InetSocketAddress inetSocketAddress = new InetSocketAddress
-                       (carbonMessage.getHost(), carbonMessage.getPort());
+                    (carbonMessage.getHost(), carbonMessage.getPort());
             ChannelFuture future = bootstrap.connect(inetSocketAddress);
             final Channel outboundChannel = future.channel();
             addCloseListener(outboundChannel, srcHandler, route);
@@ -186,7 +183,7 @@ public class NettySender implements TransportSender {
     }
 
     /**
-     * Class representing configs related to Transport Sender
+     * Class representing configs related to Transport Sender.
      */
     public static class Config {
 

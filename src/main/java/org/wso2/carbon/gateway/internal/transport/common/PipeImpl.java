@@ -24,9 +24,8 @@ import org.wso2.carbon.gateway.internal.common.Pipe;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-
 /**
- * A class that contains the content of request
+ * A class that contains the content of request.
  */
 public class PipeImpl implements Pipe {
 

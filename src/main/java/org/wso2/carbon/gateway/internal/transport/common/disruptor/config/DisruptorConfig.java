@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class represents the disruptor configuration
+ * This class represents the disruptor configuration.
  */
 public class DisruptorConfig {
 

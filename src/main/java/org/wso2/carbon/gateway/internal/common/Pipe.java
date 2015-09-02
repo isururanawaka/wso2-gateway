@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.common;
 
 /**
- * Interface for create Content Holders
+ * Interface for create Content Holders.
  */
 public interface Pipe {
 

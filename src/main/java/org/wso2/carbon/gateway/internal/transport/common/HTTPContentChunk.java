@@ -21,9 +21,8 @@ import org.wso2.carbon.gateway.internal.common.ContentChunk;
 
 
 /**
- * A class that represent the Http content chunk
+ * A class that represent the Http content chunk.
  */
-
 public class HTTPContentChunk implements ContentChunk {
     boolean lastChunk = false;
 

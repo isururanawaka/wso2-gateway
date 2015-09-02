@@ -18,10 +18,10 @@ package org.wso2.carbon.gateway.internal.common;
 
 
 /**
- * Interface for Message Sender
+ * Interface for Message Sender.
  */
-public interface  TransportSender {
+public interface TransportSender {
 
-    public  boolean send(CarbonMessage msg, CarbonCallback callback);
+    public boolean send(CarbonMessage msg, CarbonCallback callback);
 
 }

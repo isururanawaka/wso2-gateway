@@ -18,10 +18,11 @@ package org.wso2.carbon.gateway.internal.transport.common.disruptor.event;
 import com.lmax.disruptor.EventFactory;
 
 /**
- * A class encapsulates the Disruptor event
+ * A class encapsulates the Disruptor event.
  */
 public class CarbonDisruptorEvent {
 
+    public static final EventFactory<CarbonDisruptorEvent> EVENT_FACTORY = CarbonDisruptorEvent::new;
     private Object event;
     private int eventId;
 
@@ -43,7 +44,5 @@ public class CarbonDisruptorEvent {
     public void setEventId(int eventId) {
         this.eventId = eventId;
     }
-
-    public  static  final EventFactory<CarbonDisruptorEvent> EVENT_FACTORY = CarbonDisruptorEvent::new;
 
 }

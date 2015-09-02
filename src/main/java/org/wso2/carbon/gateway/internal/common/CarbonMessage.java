@@ -27,7 +27,7 @@ public abstract class CarbonMessage {
     public abstract UUID getId();
 
 
-    public abstract  int getDirection();
+    public abstract int getDirection();
 
 
     public abstract void setDirection(int direction);

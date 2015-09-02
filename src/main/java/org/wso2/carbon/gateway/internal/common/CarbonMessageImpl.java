@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Implementation of the CarbonMessage
+ * Implementation of the CarbonMessage.
  */
 public class CarbonMessageImpl extends CarbonMessage {
 

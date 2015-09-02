@@ -19,7 +19,7 @@ import com.lmax.disruptor.EventTranslator;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 
 /**
- * Event Publisher for RingNBuffer of Disruptor
+ * Event Publisher for RingNBuffer of Disruptor.
  */
 public class CarbonEventPublisher implements EventTranslator<CarbonDisruptorEvent> {
 

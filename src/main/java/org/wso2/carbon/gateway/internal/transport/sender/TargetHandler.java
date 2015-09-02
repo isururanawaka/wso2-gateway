@@ -35,7 +35,7 @@ import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.Car
 import java.net.InetSocketAddress;
 
 /**
- * A class responsible for handle responses coming from BE
+ * A class responsible for handling responses coming from BE.
  */
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = LoggerFactory.getLogger(TargetHandler.class);
