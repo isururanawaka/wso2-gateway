@@ -23,8 +23,8 @@ import org.apache.camel.impl.DefaultConsumer;
 import org.apache.camel.util.ObjectHelper;
 
 /**
- * The CamelMediation consumer. Client incoming messages will
- * TODO complete the comment
+ * mediation starts from here : this is the camel mediation consumer
+ * for each route a consumer is created and added to the engine consumers map
  */
 public class CamelMediationConsumer extends DefaultConsumer {
     private final CamelMediationEngine engine;

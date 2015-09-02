@@ -41,13 +41,13 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(CamelMediationEngine.class);
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers = new ConcurrentHashMap<>();
+    private CamelMediationConsumer consumer = null;
     private TransportSender sender;
 
     public CamelMediationEngine(TransportSender sender) {
         this.sender = sender;
         // this.sender.setCarbonMessageProcessor(this);
     }
-
 
     //Client messages will receive here
     public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
@@ -94,6 +94,16 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     }
 
     private CamelMediationConsumer decideConsumer(String protocol, String host, String uri) {
+        if (consumer != null) {
+            return consumer;
+        }
+        if (consumers.size() == 1) {
+            String key = consumers.keySet().iterator().next();
+            if (!key.contains("http")) {
+                consumer = consumers.get(key);
+                return consumers.get(key);
+            }
+        }
         String messageURL = protocol + "://" + host + uri;
         for (String key : consumers.keySet()) {
             if (key.equals(messageURL) || key.contains(messageURL)) {
