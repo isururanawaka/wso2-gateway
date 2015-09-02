@@ -57,14 +57,6 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
         return true;
     }
 
-/*    public void setEngine(CamelMediationEngine camelMediationEngine) {
-        this.engine = camelMediationEngine;
-    }
-
-    public CamelMediationEngine getEngine() {
-        return engine;
-    }*/
-
     public Exchange createExchange(Map<String, Object> headers, CarbonMessage cmsg) {
         Exchange exchange = createExchange();
         carbonCamelMessageUtil.setCamelHeadersToClientRequest(exchange, headers, cmsg);
@@ -73,10 +65,6 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
         exchange.getIn().setBody(cmsg);
         return exchange;
     }
-
-/*    private void addHeadersToExchange(Message in, Map<String, Object> headers) {
-        in.setHeaders(headers);
-    }*/
 
     public CarbonCamelMessageUtil getCarbonCamelMessageUtil() {
         return carbonCamelMessageUtil;
