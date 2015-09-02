@@ -63,7 +63,7 @@ public class NettySender implements TransportSender {
 
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 
-        if (isRouteExists(route, msg)) {
+        if (!isRouteExists(route, msg)) {
 
             createAndCacheNewConnection(msg, route, config.getQueueSize(), callback, httpRequest);
 
@@ -115,7 +115,7 @@ public class NettySender implements TransportSender {
 
     }
 
-    private synchronized void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
+    private void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
                                                           CarbonCallback carbonCallback, HttpRequest httpRequest) {
         SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
         ChannelHandlerContext inboundCtx = (ChannelHandlerContext) carbonMessage.getProperty(Constants.CHNL_HNDLR_CTX);

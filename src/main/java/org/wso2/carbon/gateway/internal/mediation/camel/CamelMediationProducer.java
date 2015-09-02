@@ -71,24 +71,6 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         return false;
     }
 
-    /*private void setCarbonHeaders(Exchange exchange) {
-
-        CarbonMessageImpl request = (CarbonMessageImpl) exchange.getIn().getBody();
-        Map<String, Object> headers = exchange.getIn().getHeaders();
-
-        if (request != null) {
-            request.setHost(host);
-            request.setPort(port);
-            request.setURI(uri);
-            if (port != 80) {
-                headers.put("Host", host + ":" + port);
-            } else {
-                headers.put("Host", host);
-            }
-            request.setProperty(Constants.TRANSPORT_HEADERS, headers);
-        }
-    }*/
-
     @Override
     public Endpoint getEndpoint() {
         return super.getEndpoint();
