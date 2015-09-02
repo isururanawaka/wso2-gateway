@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.common;
 
 /**
- * Interface of the Carbon Message Processor which is used to process Carbon Messages
+ * Interface of the Carbon Message Processor which is used to process Carbon Messages.
  */
 public interface CarbonMessageProcessor {
 

@@ -19,7 +19,7 @@ import com.lmax.disruptor.EventHandler;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 
 /**
- * Abstract class of Disruptor consumers
+ * Abstract class of Disruptor consumers.
  */
 public abstract class DisruptorEventHandler implements EventHandler<CarbonDisruptorEvent> {
 

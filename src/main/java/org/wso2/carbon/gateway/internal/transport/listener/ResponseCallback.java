@@ -47,7 +47,7 @@ public class ResponseCallback implements CarbonCallback {
                 ctx.writeAndFlush(httpContent);
                 break;
             }
-          ctx.write(httpContent);
+            ctx.write(httpContent);
         }
     }
 }

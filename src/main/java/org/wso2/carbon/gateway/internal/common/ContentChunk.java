@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.common;
 
 /**
- * Interface for encapsulate events in transport layer
+ * Interface for encapsulate events in transport layer.
  */
 public interface ContentChunk {
 

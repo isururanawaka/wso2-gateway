@@ -23,7 +23,7 @@ import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.Disrup
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 
 /**
- * Event Consumer of the Disruptor
+ * Event Consumer of the Disruptor.
  */
 public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
 
@@ -39,8 +39,8 @@ public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
         int messageID = carbonDisruptorEvent.getEventId();
         if (carbonMessage.getDirection() == CarbonMessage.IN &&
 
-            canProcess(DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
-                       eventHandlerid, messageID)) {
+                canProcess(DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
+                        eventHandlerid, messageID)) {
 
             CarbonMessageProcessor engine = (CarbonMessageProcessor) carbonMessage.getProperty(Constants.ENGINE);
             CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
@@ -48,18 +48,18 @@ public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
 
         } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
 
-                   DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) != null &&
-                   canProcess(DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND).
-                                         getNoOfEventHandlersPerDisruptor(), eventHandlerid, messageID)) {
+                DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) != null &&
+                canProcess(DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND).
+                        getNoOfEventHandlersPerDisruptor(), eventHandlerid, messageID)) {
 
             CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
             carbonCallback.done(carbonMessage);
 
         } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
 
-                   DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) == null && canProcess(
-                   DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
-                   eventHandlerid, messageID)) {
+                DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) == null && canProcess(
+                DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
+                eventHandlerid, messageID)) {
 
             CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
             carbonCallback.done(carbonMessage);

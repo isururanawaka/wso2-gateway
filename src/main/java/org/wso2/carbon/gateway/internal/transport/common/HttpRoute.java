@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.transport.common;
 
 /**
- * Class encapsulates the Endpoint address
+ * Class encapsulates the Endpoint address.
  */
 public class HttpRoute {
     private String host;

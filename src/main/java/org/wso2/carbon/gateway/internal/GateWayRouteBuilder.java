@@ -18,7 +18,7 @@ package org.wso2.carbon.gateway.internal;
 import org.apache.camel.builder.RouteBuilder;
 
 /**
- * A class which creates a Route Builder
+ * A class which creates a Route Builder.
  */
 public class GateWayRouteBuilder extends RouteBuilder {
 
@@ -26,18 +26,18 @@ public class GateWayRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("wso2-gw:http://204.13.85.2:9090/service").choice().when(header("routeId").regex("r1"))
-                   .to("wso2-gw:http://204.13.85.5:5050/services/echo")
-                   .when(header("routeId").regex("r2"))
-                   .to("wso2-gw:http://204.13.85.5:6060/services/echo")
-                   .otherwise()
-                   .to("wso2-gw:http://204.13.85.5:7070/services/echo");
+                .to("wso2-gw:http://204.13.85.5:5050/services/echo")
+                .when(header("routeId").regex("r2"))
+                .to("wso2-gw:http://204.13.85.5:6060/services/echo")
+                .otherwise()
+                .to("wso2-gw:http://204.13.85.5:7070/services/echo");
 
         from("wso2-gw:http://localhost:9090/service").choice().when(header("routeId").regex("r1"))
-                   .to("wso2-gw:http://localhost:8080/services/echo")
-                   .when(header("routeId").regex("r2"))
-                   .to("wso2-gw:http://localhost:6060/services/echo")
-                   .otherwise()
-                   .to("wso2-gw:http://localhost:7070/services/echo");
+                .to("wso2-gw:http://localhost:8080/services/echo")
+                .when(header("routeId").regex("r2"))
+                .to("wso2-gw:http://localhost:6060/services/echo")
+                .otherwise()
+                .to("wso2-gw:http://localhost:7070/services/echo");
 
     }
 }

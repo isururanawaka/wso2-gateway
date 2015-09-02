@@ -16,7 +16,7 @@
 package org.wso2.carbon.gateway.internal.common;
 
 /**
- * Common Interface of Carbon Callback
+ * Common Interface of Carbon Callback.
  */
 public interface CarbonCallback {
 

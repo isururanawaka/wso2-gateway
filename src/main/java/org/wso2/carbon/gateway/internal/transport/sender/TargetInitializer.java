@@ -23,7 +23,7 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 
 /**
- * A class that responsible for initialize target server pipeline
+ * A class that responsible for initialize target server pipeline.
  */
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     protected static final String HANDLER = "handler";
