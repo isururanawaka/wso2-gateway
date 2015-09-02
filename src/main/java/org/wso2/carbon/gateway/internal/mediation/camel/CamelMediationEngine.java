@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.gateway.internal.mediation.camel;
 
-import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.slf4j.Logger;
@@ -49,10 +48,6 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
         // this.sender.setCarbonMessageProcessor(this);
     }
 
-    @Override
-    public boolean init(TransportSender sender) {
-        return true;
-    }
 
     //Client messages will receive here
     public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
@@ -62,7 +57,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
         }
         Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
-                decideConsumer(cMsg.getProtocol(), (String) transportHeaders.get("Host"), cMsg.getURI());
+                   decideConsumer(cMsg.getProtocol(), (String) transportHeaders.get("Host"), cMsg.getURI());
         if (consumer != null) {
             final Exchange exchange = consumer.getEndpoint().createExchange(transportHeaders, cMsg);
             exchange.setPattern(ExchangePattern.InOut);
@@ -84,19 +79,16 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
 
     private void processAsynchronously(final Exchange exchange, final CamelMediationConsumer consumer,
                                        final CarbonCallback requestCallback) {
-        consumer.getAsyncProcessor().process(exchange, new AsyncCallback() {
-            @Override
-            public void done(boolean done) {
+        consumer.getAsyncProcessor().process(exchange, done -> {
 
-                CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
-                Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
-                mediatedResponse.setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
+            CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
+            Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
+            mediatedResponse.setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
 
-                try {
-                    requestCallback.done(mediatedResponse);
-                } finally {
-                    consumer.doneUoW(exchange);
-                }
+            try {
+                requestCallback.done(mediatedResponse);
+            } finally {
+                consumer.doneUoW(exchange);
             }
         });
     }

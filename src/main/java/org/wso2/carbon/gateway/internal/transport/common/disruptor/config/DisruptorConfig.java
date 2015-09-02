@@ -21,24 +21,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO class level comment.
+ * A class represents the disruptor configuration
  */
 public class DisruptorConfig {
 
     private int bufferSize;
     private int noDisruptors;
     private int noOfEventHandlersPerDisruptor;
-    private DisruptorFactory.WAITSTRATEGY waitstrategy;
+    private String disruptorWaitStrategy;
     private boolean shared;
-    private List<RingBuffer> disruptorMap = new ArrayList<RingBuffer>();
+    private List<RingBuffer> disruptorMap = new ArrayList<>();
     private int index = 1;
 
     public DisruptorConfig(int bufferSize, int noDisruptors, int noOfEventHandlersPerDisruptor,
-                           DisruptorFactory.WAITSTRATEGY waitstrategy, boolean shared) {
+                           String disruptorWaitStrategy, boolean shared) {
         this.bufferSize = bufferSize;
         this.noDisruptors = noDisruptors;
         this.noOfEventHandlersPerDisruptor = noOfEventHandlersPerDisruptor;
-        this.waitstrategy = waitstrategy;
+        this.disruptorWaitStrategy = disruptorWaitStrategy;
         this.shared = shared;
     }
 
@@ -54,8 +54,8 @@ public class DisruptorConfig {
         return noOfEventHandlersPerDisruptor;
     }
 
-    public DisruptorFactory.WAITSTRATEGY getWaitstrategy() {
-        return waitstrategy;
+    public String getDisruptorWaitStrategy() {
+        return disruptorWaitStrategy;
     }
 
     public boolean isShared() {

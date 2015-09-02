@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.wso2.carbon.gateway.internal.transport.sender;
@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
@@ -43,113 +42,37 @@ import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 import java.net.InetSocketAddress;
 
 /**
- * TODO class level comment.
+ * A class creates connections with BE and send messages
  */
-public class NettySender extends TransportSender {
+public class NettySender implements TransportSender {
     private static final Logger LOG = LoggerFactory.getLogger(NettySender.class);
 
     private Config config;
 
-    private Object lock = new Object();
+    private final Object lock = new Object();
 
     private int channelCorrelator;
 
 
     public NettySender(Config conf) {
-        super(Constants.PROTOCOL_NAME);
         this.config = conf;
     }
 
-    public boolean init() {
-        return true;
-    }
 
     @Override
     public boolean send(CarbonMessage msg, CarbonCallback callback) {
-        final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                msg.getProperty(Constants.CHNL_HNDLR_CTX);
+
         final HttpRequest httpRequest = Util.createHttpRequest(msg);
-        final Pipe pipe = msg.getPipe();
-        final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.SRC_HNDLR);
-        InetSocketAddress address = new InetSocketAddress(msg.getHost(), msg.getPort());
+
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
-// TODO use src handler map (host port) and condition to use pool for throttling.
-        if (srcHandler.getChannelFuture(route) == null) {
-            synchronized (srcHandler.getLock()) {
-                if (srcHandler.getChannelFuture(route) == null) {
-                    synchronized (lock) {
-                        channelCorrelator++;
-                    }
-                }
-                RingBuffer ringBuffer = (RingBuffer) msg.getProperty(Constants.DISRUPTOR);
-                if (ringBuffer == null) {
-                    DisruptorConfig disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.SENDER);
-                    ringBuffer = disruptorConfig.getDisruptor();
-                }
-                TargetInitializer targetInitializer =
-                        new TargetInitializer(ringBuffer, channelCorrelator, config.getQueueSize());
-                Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
-                ChannelFuture future = bootstrap.connect(address);
-                final Channel outboundChannel = future.channel();
-                addCloseListener(outboundChannel, srcHandler, route);
-                TargetChanel targetChanel = new TargetChanel();
-                srcHandler.addChannelFuture(route, targetChanel);
-// putCallback(outboundChannel, callback);
-// outboundChannel.attr(TargetHandler.callbackAttribute).set(callback);
-                future.addListener(new ChannelFutureListener() {
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        if (future.isSuccess()) {
-                            srcHandler.setTargetHandler(targetInitializer.getTargetHandler());
-                            targetInitializer.getTargetHandler().setCallback(callback);
-                            outboundChannel.write(httpRequest);
-                            while (true) {
-                                HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
-                                HttpContent httpContent = chunk.getHttpContent();
-                                if (httpContent instanceof LastHttpContent) {
-                                    outboundChannel.writeAndFlush(httpContent);
-                                    break;
-                                }
-                                if (httpContent != null) {
-                                    outboundChannel.write(httpContent);
-                                }
-                            }
-                            srcHandler.getChannelFuture(route).setChannelFuture(future).setChannelFutureReady(true);
-// srcHandler.setChannel(outboundChannel);
-                        } else {
-// Close the connection if the connection attempt has failed.
-                            outboundChannel.close();
-                        }
-                    }
-                });
-            }
+
+        if (isRouteExists(route, msg)) {
+
+            createAndCacheNewConnection(msg, route, config.getQueueSize(), callback, httpRequest);
 
         } else {
-            while (!srcHandler.getChannelFuture(route).isChannelFutureReady()) {
-//                try {
-//                    Thread.currentThread().wait(1);
-//                } catch (InterruptedException e) {
-//                    log.error("Interuppted Exception",e);
-//                }
-            }
-            TargetChanel targetChanel = srcHandler.getChannelFuture(route);
-// putCallback(srcHandler.getChannel(), callback);
-// srcHandler.getChannel().attr(TargetHandler.callbackAttribute).set(callback);
-            srcHandler.getTargetHandler().setCallback(callback);
-            if (targetChanel.getChannelFuture().isSuccess() && targetChanel.getChannelFuture().channel().isActive()) {
-                targetChanel.getChannelFuture().channel().write(httpRequest);
-                while (true) {
-                    HTTPContentChunk chunk = (HTTPContentChunk) pipe.getContent();
-                    HttpContent httpContent = chunk.getHttpContent();
-                    if (httpContent instanceof LastHttpContent) {
-                        targetChanel.getChannelFuture().channel().writeAndFlush(httpContent);
-                        break;
-                    }
-                    targetChanel.getChannelFuture().channel().write(httpContent);
-                }
-            } else {
-                // need to handle new connection
-                LOG.error("Channel is closed");
-            }
+
+            writeUsingExistingConnection(msg, httpRequest, route, callback);
         }
         return false;
     }
@@ -157,20 +80,15 @@ public class NettySender extends TransportSender {
 
     private void addCloseListener(Channel ch, final SourceHandler handler, final HttpRoute route) {
         ChannelFuture closeFuture = ch.closeFuture();
-        closeFuture.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                handler.removeChannelFuture(route);
-            }
-        });
+        closeFuture.addListener(future -> handler.removeChannelFuture(route));
     }
 
 
     private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
-                .channel(ctx.channel().getClass())
-                .handler(targetInitializer);
+                   .channel(ctx.channel().getClass())
+                   .handler(targetInitializer);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -178,8 +96,97 @@ public class NettySender extends TransportSender {
         return bootstrap;
     }
 
+
+    private boolean isRouteExists(HttpRoute httpRoute, CarbonMessage carbonMessage) {
+        final SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
+        return srcHandler.getChannelFuture(httpRoute) != null;
+    }
+
+    private void writeContent(Channel channel, HttpRequest httpRequest, CarbonMessage carbonMessage) {
+        channel.write(httpRequest);
+        while (true) {
+            HTTPContentChunk chunk = (HTTPContentChunk) carbonMessage.getPipe().getContent();
+            HttpContent httpContent = chunk.getHttpContent();
+            if (httpContent instanceof LastHttpContent) {
+                channel.writeAndFlush(httpContent);
+                break;
+            }
+            if (httpContent != null) {
+                channel.write(httpContent);
+            }
+        }
+
+    }
+
+    private synchronized void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
+                                                          CarbonCallback carbonCallback, HttpRequest httpRequest) {
+        SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
+        ChannelHandlerContext inboundCtx = (ChannelHandlerContext) carbonMessage.getProperty(Constants.CHNL_HNDLR_CTX);
+        synchronized (srcHandler.getLock()) {
+            if (srcHandler.getChannelFuture(route) == null) {
+                synchronized (lock) {
+                    channelCorrelator++;
+                }
+            }
+            RingBuffer ringBuffer = (RingBuffer) carbonMessage.getProperty(Constants.DISRUPTOR);
+            if (ringBuffer == null) {
+                DisruptorConfig disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND);
+                ringBuffer = disruptorConfig.getDisruptor();
+            }
+            TargetInitializer targetInitializer =
+                       new TargetInitializer(ringBuffer, channelCorrelator, queueSize);
+            Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
+            InetSocketAddress inetSocketAddress = new InetSocketAddress
+                       (carbonMessage.getHost(), carbonMessage.getPort());
+            ChannelFuture future = bootstrap.connect(inetSocketAddress);
+            final Channel outboundChannel = future.channel();
+            addCloseListener(outboundChannel, srcHandler, route);
+            TargetChanel targetChanel = new TargetChanel();
+            srcHandler.addChannelFuture(route, targetChanel);
+
+            future.addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (future.isSuccess()) {
+                        srcHandler.setTargetHandler(targetInitializer.getTargetHandler());
+                        targetInitializer.getTargetHandler().setCallback(carbonCallback);
+
+                        writeContent(outboundChannel, httpRequest, carbonMessage);
+
+                        srcHandler.getChannelFuture(route).setChannelFuture(future).setChannelFutureReady(true);
+
+                    } else {
+                        outboundChannel.close();
+                    }
+                }
+            });
+
+        }
+    }
+
+
+    private void writeUsingExistingConnection(CarbonMessage carbonMessage, HttpRequest httpRequest, HttpRoute route,
+                                              CarbonCallback carbonCallback) {
+        SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
+
+        while (!srcHandler.getChannelFuture(route).isChannelFutureReady()) {
+        }
+
+        TargetChanel targetChanel = srcHandler.getChannelFuture(route);
+
+        srcHandler.getTargetHandler().setCallback(carbonCallback);
+
+        if (targetChanel.getChannelFuture().isSuccess() && targetChanel.getChannelFuture().channel().isActive()) {
+
+            writeContent(targetChanel.getChannelFuture().channel(), httpRequest, carbonMessage);
+
+        } else {
+            //TODO handle close connection
+            LOG.error("Channel is closed");
+        }
+    }
+
     /**
-     * TODO class level comment.
+     * Class representing configs related to Transport Sender
      */
     public static class Config {
 

@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 package org.wso2.carbon.gateway.internal.transport.sender;
 
@@ -20,10 +20,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
+import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
 import org.wso2.carbon.gateway.internal.transport.common.PipeImpl;
@@ -33,10 +35,10 @@ import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.Car
 import java.net.InetSocketAddress;
 
 /**
- * TODO class level comment.
+ * A class responsible for handle responses coming from BE
  */
 public class TargetHandler extends ChannelInboundHandlerAdapter {
-    private static Logger log = Logger.getLogger(TargetHandler.class);
+    private static Logger log = LoggerFactory.getLogger(TargetHandler.class);
 
     private CarbonCallback callback;
     private RingBuffer ringBuffer;
@@ -56,6 +58,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         super.channelActive(ctx);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpResponse) {
@@ -68,7 +71,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            PipeImpl pipe = new PipeImpl("Target Pipe", queuesize);
+            Pipe pipe = new PipeImpl(queuesize);
             cMsg.setPipe(pipe);
             ringBuffer.publishEvent(new CarbonEventPublisher(cMsg, trgId));
         } else {
