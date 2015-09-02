@@ -42,7 +42,12 @@ public class GateWayNettyInitializer implements CarbonNettyServerInitializer {
     }
 
     @Override
-    public void initChannel(SocketChannel ch, Map<String, String> parameters) {
+    public void setup(Map<String, String> parameters) {
+        //TODO: setup
+    }
+
+    @Override
+    public void initChannel(SocketChannel ch) {
         if (log.isDebugEnabled()) {
             log.info("Initializing source channel pipeline");
         }
