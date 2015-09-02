@@ -15,21 +15,23 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.handler;
 
-
 import com.lmax.disruptor.EventHandler;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 
-public  abstract class DisruptorEventHandler implements EventHandler<CarbonDisruptorEvent> {
+/**
+ * TODO class level comment.
+ */
+public abstract class DisruptorEventHandler implements EventHandler<CarbonDisruptorEvent> {
 
     public abstract void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception;
 
-    public boolean canProcess(int totalNumOfEventHandlers, int handlerId ,  int messageId){
-        if(messageId > totalNumOfEventHandlers){
-            if(handlerId == messageId % totalNumOfEventHandlers){
+    public boolean canProcess(int totalNumOfEventHandlers, int handlerId, int messageId) {
+        if (messageId > totalNumOfEventHandlers) {
+            if (handlerId == messageId % totalNumOfEventHandlers) {
                 return true;
             }
-        }else {
-            if(handlerId == totalNumOfEventHandlers % messageId){
+        } else {
+            if (handlerId == totalNumOfEventHandlers % messageId) {
                 return true;
             }
         }

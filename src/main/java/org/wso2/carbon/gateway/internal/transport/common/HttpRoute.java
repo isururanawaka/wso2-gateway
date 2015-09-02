@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -16,6 +15,9 @@
 
 package org.wso2.carbon.gateway.internal.transport.common;
 
+/**
+ * TODO class level comment.
+ */
 public class HttpRoute {
     private String host;
     private int port;

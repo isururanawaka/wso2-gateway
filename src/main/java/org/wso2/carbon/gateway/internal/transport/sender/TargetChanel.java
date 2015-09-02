@@ -19,12 +19,12 @@ package org.wso2.carbon.gateway.internal.transport.sender;
 import io.netty.channel.ChannelFuture;
 
 /**
- * A class that encapsulate channel and state
+ * A class that encapsulate channel and state.
  */
 public class TargetChanel {
 
 
-    private boolean channelFutureReady ;
+    private boolean channelFutureReady;
 
     private ChannelFuture channelFuture;
 

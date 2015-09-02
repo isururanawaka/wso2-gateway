@@ -22,18 +22,24 @@ import org.wso2.carbon.gateway.internal.common.ContentChunk;
 
 import java.nio.ByteBuffer;
 
+/**
+ * TODO class level comment.
+ */
 public class HTTPContentChunk implements ContentChunk {
-    private HttpContent httpContent;
     boolean lastChunk = false;
+    private HttpContent httpContent;
+
     public HTTPContentChunk(HttpContent content) {
         if (content instanceof LastHttpContent || content instanceof DefaultLastHttpContent) {
             lastChunk = true;
         }
         httpContent = content;
     }
+
     public ByteBuffer[] getContentChunk() {
         return httpContent.content().nioBuffers();
     }
+
     public HttpContent getHttpContent() {
         if (isLastChunk()) {
             return (LastHttpContent) httpContent;
@@ -41,6 +47,7 @@ public class HTTPContentChunk implements ContentChunk {
             return httpContent;
         }
     }
+
     public boolean isLastChunk() {
         if (lastChunk) {
             return true;

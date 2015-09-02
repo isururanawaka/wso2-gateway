@@ -17,47 +17,50 @@ package org.wso2.carbon.gateway.internal.common;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Represents a CarbonMessage.
+ */
 public abstract class CarbonMessage {
-    public final static int IN = 0;
-    public final static int OUT = 1;
+    public static final int IN = 0;
+    public static final int OUT = 1;
 
-    abstract public UUID getId();
+    public abstract UUID getId();
 
-    abstract public void setId(UUID id);
+    public abstract void setId(UUID id);
 
-    abstract public int getDirection();
+    public abstract int getDirection();
 
-    abstract public void setDirection(int direction);
+    public abstract void setDirection(int direction);
 
-    abstract public Pipe getPipe();
+    public abstract Pipe getPipe();
 
-    abstract public void setPipe(Pipe pipe);
+    public abstract void setPipe(Pipe pipe);
 
-    abstract public String getHost();
+    public abstract String getHost();
 
-    abstract public void setHost(String host);
+    public abstract void setHost(String host);
 
-    abstract public int getPort();
+    public abstract int getPort();
 
-    abstract public void setPort(int port);
+    public abstract void setPort(int port);
 
-    abstract public String getURI();
+    public abstract String getURI();
 
-    abstract public void setURI(String to);
+    public abstract void setURI(String to);
 
-    abstract public String getReplyTo();
+    public abstract String getReplyTo();
 
-    abstract public void setReplyTo(String replyTo);
+    public abstract void setReplyTo(String replyTo);
 
-    abstract public String getProtocol();
+    public abstract String getProtocol();
 
-    abstract public void setProtocol(String protocol);
+    public abstract void setProtocol(String protocol);
 
-    abstract public Object getProperty(String key);
+    public abstract Object getProperty(String key);
 
-    abstract public void setProperty(String key, Object value);
+    public abstract void setProperty(String key, Object value);
 
-    abstract public Map<String, Object> getProperties();
+    public abstract Map<String, Object> getProperties();
 
-    abstract public void setProperties(Map<String, Object> properties);
+    public abstract void setProperties(Map<String, Object> properties);
 }

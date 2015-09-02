@@ -15,20 +15,21 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher;
 
-
 import com.lmax.disruptor.EventTranslator;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
 
-
+/**
+ * TODO class level comment.
+ */
 public class CarbonEventPublisher implements EventTranslator<CarbonDisruptorEvent> {
 
     private Object event;
 
     private int eventId;
 
-    public CarbonEventPublisher(Object event , int eventId) {
+    public CarbonEventPublisher(Object event, int eventId) {
         this.event = event;
-        this.eventId=eventId;
+        this.eventId = eventId;
     }
 
     public void translateTo(CarbonDisruptorEvent event, long sequence) {

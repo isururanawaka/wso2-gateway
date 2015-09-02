@@ -15,12 +15,14 @@
 
 package org.wso2.carbon.gateway.internal.transport.common.disruptor.config;
 
-
 import com.lmax.disruptor.RingBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TODO class level comment.
+ */
 public class DisruptorConfig {
 
     private int bufferSize;

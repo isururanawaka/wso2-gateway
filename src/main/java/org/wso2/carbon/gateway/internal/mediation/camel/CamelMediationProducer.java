@@ -67,7 +67,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         carbonCamelMessageUtil.setCarbonHeadersToBackendRequest(exchange, host, port, uri);
         //setCarbonHeaders(exchange);
         engine.getSender().send(exchange.getIn().getBody(CarbonMessageImpl.class),
-                                new NettyHttpBackEndCallback(exchange, callback));
+                new NettyHttpBackEndCallback(exchange, callback));
         return false;
     }
 
@@ -89,7 +89,8 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         }
     }*/
 
-    @Override public Endpoint getEndpoint() {
+    @Override
+    public Endpoint getEndpoint() {
         return super.getEndpoint();
     }
 
@@ -103,7 +104,8 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         }
 
         //This will be called when the backend response arrived
-        @Override public void done(CarbonMessage cMsg) {
+        @Override
+        public void done(CarbonMessage cMsg) {
             if (cMsg != null) {
                 Map<String, Object> transportHeaders =
                         (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);

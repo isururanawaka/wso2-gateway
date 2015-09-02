@@ -14,10 +14,12 @@
  */
 package org.wso2.carbon.gateway.internal.common;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * TODO class level comment.
+ */
 public abstract class TransportSender {
     private static Logger log = LoggerFactory.getLogger(TransportSender.class);
 
@@ -27,9 +29,13 @@ public abstract class TransportSender {
         this.protocol = protocol;
     }
 
-    public String getProtocol() { return protocol; }
+    public String getProtocol() {
+        return protocol;
+    }
 
-    public void setProtocol(String protocol) { this.protocol = protocol; }
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
     public abstract boolean init();
 

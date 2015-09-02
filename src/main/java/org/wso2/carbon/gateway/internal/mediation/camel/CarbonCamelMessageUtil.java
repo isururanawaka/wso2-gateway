@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Carbon-Camel header transformation
+ * Carbon-Camel header transformation.
  */
 public class CarbonCamelMessageUtil {
 
@@ -56,7 +56,8 @@ public class CarbonCamelMessageUtil {
             s = ObjectHelper.before(s, "?");
         }
 
-        // we want the full path for the url, as the client may provide the url in the HTTP headers as absolute or relative, eg
+        // we want the full path for the url, as the client may provide the url in the HTTP headers as
+        // absolute or relative, eg
         //   /foo
         //   http://servername/foo
         String http = request.getProtocol() + "://";

@@ -16,6 +16,9 @@ package org.wso2.carbon.gateway.internal.common;
 
 import java.nio.ByteBuffer;
 
+/**
+ * TODO class level comment.
+ */
 public interface ContentChunk {
 
     ByteBuffer[] getContentChunk();

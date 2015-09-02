@@ -14,11 +14,13 @@
  */
 package org.wso2.carbon.gateway.internal.common;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * TODO class level comment.
+ */
 public class CarbonMessageImpl extends CarbonMessage {
 
     private UUID id;

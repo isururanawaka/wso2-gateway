@@ -27,20 +27,23 @@ import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
-import org.wso2.carbon.gateway.internal.transport.common.*;
+import org.wso2.carbon.gateway.internal.transport.common.Constants;
+import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
+import org.wso2.carbon.gateway.internal.transport.common.HttpRoute;
+import org.wso2.carbon.gateway.internal.transport.common.PipeImpl;
+import org.wso2.carbon.gateway.internal.transport.common.Util;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorConfig;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetChanel;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetHandler;
 
-
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A Class responsible for handle  incoming message through netty inbound pipeline
+ * A Class responsible for handle  incoming message through netty inbound pipeline.
  */
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
@@ -56,9 +59,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private DisruptorConfig disruptorConfig;
     private Object lock = new Object();
 
-    public SourceHandler(CarbonMessageProcessor engine,int srcId, int queueSize) throws Exception {
-      //  this.engine = NettyTransportDataHolder.getInstance().getEngine();
-        if(engine == null){
+    public SourceHandler(CarbonMessageProcessor engine, int srcId, int queueSize) throws Exception {
+        //  this.engine = NettyTransportDataHolder.getInstance().getEngine();
+        if (engine == null) {
             throw new Exception("Cannot find registered Engine");
         }
         this.engine = engine;
@@ -90,7 +93,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg.setProperty(Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
             cMsg.setProperty(Constants.HTTP_METHOD, httpRequest.getMethod().name());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
-            Pipe pipe = new Pipe("Source Pipe", queueSize);
+            PipeImpl pipe = new PipeImpl("Source Pipe", queueSize);
             cMsg.setPipe(pipe);
             if (disruptorConfig.isShared()) {
                 cMsg.setProperty(Constants.DISRUPTOR, disruptor);
@@ -103,8 +106,8 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                     LastHttpContent lastHttpContent = (LastHttpContent) msg;
                     HttpHeaders trailingHeaders = lastHttpContent.trailingHeaders();
                     for (String val : trailingHeaders.names()) {
-                        ((Pipe) cMsg.getPipe()).
-                                   addTrailingHeader(val, trailingHeaders.get(val));
+                        ((PipeImpl) cMsg.getPipe()).
+                                addTrailingHeader(val, trailingHeaders.get(val));
                     }
                     chunk = new HTTPContentChunk(lastHttpContent);
                 } else {
@@ -134,12 +137,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         return channelFutureMap.get(route.toString());
     }
 
-    public void setTargetHandler(TargetHandler targetHandler) {
-        this.targetHandler = targetHandler;
-    }
-
     public TargetHandler getTargetHandler() {
         return targetHandler;
+    }
+
+    public void setTargetHandler(TargetHandler targetHandler) {
+        this.targetHandler = targetHandler;
     }
 
     public Object getLock() {

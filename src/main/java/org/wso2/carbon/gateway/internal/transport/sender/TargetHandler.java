@@ -12,9 +12,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and limitations under the License.
  */
-
 package org.wso2.carbon.gateway.internal.transport.sender;
-
 
 import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,13 +26,15 @@ import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
-import org.wso2.carbon.gateway.internal.transport.common.Pipe;
+import org.wso2.carbon.gateway.internal.transport.common.PipeImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Util;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.CarbonEventPublisher;
 
-
 import java.net.InetSocketAddress;
 
+/**
+ * TODO class level comment.
+ */
 public class TargetHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(TargetHandler.class);
 
@@ -68,7 +68,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setDirection(CarbonMessageImpl.OUT);
             cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
-            Pipe pipe = new Pipe("Target Pipe", queuesize);
+            PipeImpl pipe = new PipeImpl("Target Pipe", queuesize);
             cMsg.setPipe(pipe);
             ringBuffer.publishEvent(new CarbonEventPublisher(cMsg, trgId));
         } else {

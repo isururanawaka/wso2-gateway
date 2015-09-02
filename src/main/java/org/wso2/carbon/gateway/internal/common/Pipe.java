@@ -14,6 +14,9 @@
  */
 package org.wso2.carbon.gateway.internal.common;
 
+/**
+ * TODO class level comment.
+ */
 public interface Pipe {
 
     ContentChunk getContent();

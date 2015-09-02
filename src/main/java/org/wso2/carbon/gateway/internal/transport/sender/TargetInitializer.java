@@ -22,12 +22,12 @@ import io.netty.handler.codec.http.HttpRequestEncoder;
 import io.netty.handler.codec.http.HttpResponseDecoder;
 import org.apache.log4j.Logger;
 
-
+/**
+ * TODO class level comment.
+ */
 public class TargetInitializer extends ChannelInitializer<SocketChannel> {
-    private static Logger log = Logger.getLogger(TargetInitializer.class);
-
     protected static final String HANDLER = "handler";
-
+    private static Logger log = Logger.getLogger(TargetInitializer.class);
     private TargetHandler handler;
 
     private RingBuffer ringBuffer;

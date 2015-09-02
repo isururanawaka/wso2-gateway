@@ -26,7 +26,7 @@ import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
 import org.wso2.carbon.gateway.internal.transport.common.Util;
 
 /**
- * A Class responsible for handle response
+ * A Class responsible for handling the response.
  */
 public class ResponseCallback implements CarbonCallback {
 
@@ -45,7 +45,7 @@ public class ResponseCallback implements CarbonCallback {
             HttpContent httpContent = chunk.getHttpContent();
             if (httpContent != null) {
                 if (httpContent instanceof LastHttpContent ||
-                    httpContent instanceof DefaultLastHttpContent) {
+                        httpContent instanceof DefaultLastHttpContent) {
                     ctx.writeAndFlush(httpContent);
                     break;
                 }

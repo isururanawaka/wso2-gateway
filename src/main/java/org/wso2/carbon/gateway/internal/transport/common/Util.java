@@ -14,7 +14,15 @@
  */
 package org.wso2.carbon.gateway.internal.transport.common;
 
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 
 import java.util.HashMap;
@@ -22,6 +30,9 @@ import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+/**
+ * TODO class level comment.
+ */
 public class Util {
 
     public static Map<String, String> getHeaders(HttpMessage message) {
@@ -63,15 +74,15 @@ public class Util {
 
     public static HttpResponse createHttpResponse(CarbonMessage msg) {
         HttpVersion httpVersion = new HttpVersion(Util.getStringValue(msg,
-                                                                      Constants.HTTP_VERSION, HTTP_1_1.text()), true);
+                Constants.HTTP_VERSION, HTTP_1_1.text()), true);
 
         int statusCode = (Integer) Util.getIntValue(msg, Constants.HTTP_STATUS_CODE, 200);
 
         HttpResponseStatus httpResponseStatus = new HttpResponseStatus(statusCode,
-                                                                       HttpResponseStatus.valueOf(statusCode).reasonPhrase());
+                HttpResponseStatus.valueOf(statusCode).reasonPhrase());
 
         DefaultHttpResponse outgoingResponse = new DefaultHttpResponse(httpVersion,
-                                                                       httpResponseStatus, false);
+                httpResponseStatus, false);
 
         Map<String, String> headerMap = (Map<String, String>) msg.getProperty(Constants.TRANSPORT_HEADERS);
 
@@ -87,7 +98,7 @@ public class Util {
         HttpVersion httpVersion = new HttpVersion((String) msg.getProperty(Constants.HTTP_VERSION), true);
 
         HttpRequest outgoingRequest =
-                   new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
+                new DefaultHttpRequest(httpVersion, httpMethod, msg.getURI(), false);
 
         Map headers = (Map) msg.getProperty(Constants.TRANSPORT_HEADERS);
 

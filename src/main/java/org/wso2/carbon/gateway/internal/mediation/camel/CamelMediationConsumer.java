@@ -24,6 +24,7 @@ import org.apache.camel.util.ObjectHelper;
 
 /**
  * The CamelMediation consumer. Client incoming messages will
+ * TODO complete the comment
  */
 public class CamelMediationConsumer extends DefaultConsumer {
     private final CamelMediationEngine engine;
@@ -33,18 +34,21 @@ public class CamelMediationConsumer extends DefaultConsumer {
         this.engine = engine;
     }
 
-    @Override protected void doStop() throws Exception {
+    @Override
+    protected void doStop() throws Exception {
         super.doStop();
         engine.removeConsumer(getEndpoint().getEndpointKey());
     }
 
-    @Override protected void doStart() throws Exception {
+    @Override
+    protected void doStart() throws Exception {
         super.doStart();
         String endPointUrlOnly = ObjectHelper.after(getEndpoint().getEndpointKey(), "://");
         engine.addConsumer(endPointUrlOnly, this);
     }
 
-    @Override public CamelMediationEndpoint getEndpoint() {
+    @Override
+    public CamelMediationEndpoint getEndpoint() {
         return (CamelMediationEndpoint) super.getEndpoint();
     }
 

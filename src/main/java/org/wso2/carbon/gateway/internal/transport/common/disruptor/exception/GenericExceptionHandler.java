@@ -18,6 +18,9 @@ package org.wso2.carbon.gateway.internal.transport.common.disruptor.exception;
 import com.lmax.disruptor.ExceptionHandler;
 import org.apache.log4j.Logger;
 
+/**
+ * TODO class level comment.
+ */
 public class GenericExceptionHandler implements ExceptionHandler {
     private static final Logger logger = Logger.getLogger(GenericExceptionHandler.class);
 

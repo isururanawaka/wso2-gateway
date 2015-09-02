@@ -23,6 +23,8 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationComponent;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationEngine;
@@ -36,8 +38,11 @@ import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitialize
 import java.util.Hashtable;
 import java.util.Properties;
 
-
+/**
+ * OSGi Bundle Activator of the gateway Carbon component.
+ */
 public class GatewayActivator implements BundleActivator {
+    private static Logger log = LoggerFactory.getLogger(TransportSender.class);
     private static final String CHANNEL_ID_KEY = "channel.id";
 
     public void start(BundleContext bundleContext) throws Exception {
@@ -55,12 +60,17 @@ public class GatewayActivator implements BundleActivator {
         } else if (waitstrategy.equals(Constants.LITE_BLOCKING)) {
             waitstrategy1 = DisruptorFactory.WAITSTRATEGY.LITE_BLOCKING;
         }
-        DisruptorConfig disruptorConfig = new DisruptorConfig(Integer.valueOf(props.getProperty("disruptor_buffer_Size", "1024")),
-                                                              Integer.valueOf(props.getProperty("no_of_disurptors", "1")),
-                                                              Integer.valueOf(props.getProperty("no_of_eventHandlers_per_disruptor", "1")), waitstrategy1, true);
+        DisruptorConfig disruptorConfig =
+                new DisruptorConfig(Integer.valueOf(props.getProperty("disruptor_buffer_Size", "1024")),
+                        Integer.valueOf(props.getProperty("no_of_disurptors", "1")),
+                        Integer.valueOf(props.getProperty("no_of_eventHandlers_per_disruptor", "1")),
+                        waitstrategy1,
+                        true);
         DisruptorFactory.createDisruptors(Constants.LISTENER, disruptorConfig);
 
-        NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(Integer.parseInt(props.getProperty("queue_size", "32544")));
+        NettySender.Config config =
+                new NettySender.Config("netty-gw-sender").
+                        setQueueSize(Integer.parseInt(props.getProperty("queue_size", "32544")));
         TransportSender sender = new NettySender(config);
         //  Engine engine = new POCMediationEngine(sender);
 
@@ -74,18 +84,18 @@ public class GatewayActivator implements BundleActivator {
                 public void configure() {
 
                     from("wso2-gw:http://204.13.85.2:9090/service").choice().when(header("routeId").regex("r1"))
-                               .to("wso2-gw:http://204.13.85.5:5050/services/echo")
-                               .when(header("routeId").regex("r2"))
-                               .to("wso2-gw:http://204.13.85.5:6060/services/echo")
-                               .otherwise()
-                               .to("wso2-gw:http://204.13.85.5:7070/services/echo");
+                            .to("wso2-gw:http://204.13.85.5:5050/services/echo")
+                            .when(header("routeId").regex("r2"))
+                            .to("wso2-gw:http://204.13.85.5:6060/services/echo")
+                            .otherwise()
+                            .to("wso2-gw:http://204.13.85.5:7070/services/echo");
 
                     from("wso2-gw:http://localhost:9090/service").choice().when(header("routeId").regex("r1"))
-                               .to("wso2-gw:http://localhost:8080/services/echo")
-                               .when(header("routeId").regex("r2"))
-                               .to("wso2-gw:http://localhost:6060/services/echo")
-                               .otherwise()
-                               .to("wso2-gw:http://localhost:7070/services/echo");
+                            .to("wso2-gw:http://localhost:8080/services/echo")
+                            .when(header("routeId").regex("r2"))
+                            .to("wso2-gw:http://localhost:6060/services/echo")
+                            .otherwise()
+                            .to("wso2-gw:http://localhost:7070/services/echo");
 
                 }
 
@@ -93,11 +103,12 @@ public class GatewayActivator implements BundleActivator {
             context.start();
             Hashtable<String, String> httpInitParams = new Hashtable<>();
             httpInitParams.put(CHANNEL_ID_KEY, "netty-gw");
-            GateWayNettyInitializer gateWayNettyInitializer = new GateWayNettyInitializer(engine, config.getQueueSize());
+            GateWayNettyInitializer gateWayNettyInitializer =
+                    new GateWayNettyInitializer(engine, config.getQueueSize());
             bundleContext.registerService(CarbonNettyServerInitializer.class, gateWayNettyInitializer, httpInitParams);
 
         } catch (Exception e) {
-            //  LOG.error("Error Starting camel context ... ", e);
+            log.error("Cannot start Gateway Activator", e);
         }
 
     }

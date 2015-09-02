@@ -15,9 +15,9 @@
 
 package org.wso2.carbon.gateway.internal.transport.common;
 
-
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.ContentChunk;
+import org.wso2.carbon.gateway.internal.common.Pipe;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -25,19 +25,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Pipe implements org.wso2.carbon.gateway.internal.common.Pipe {
-    private static Logger log = Logger.getLogger(Pipe.class);
+/**
+ * TODO class level comment.
+ */
+public class PipeImpl implements Pipe {
+    private static Logger log = Logger.getLogger(PipeImpl.class);
     private String name = "Buffer";
     private int queueSize;
-    private BlockingQueue<ContentChunk> contentQueue ;
+    private BlockingQueue<ContentChunk> contentQueue;
     private Map trailingheaders = new ConcurrentHashMap<String, String>();
     private AtomicBoolean isReadComplete = new AtomicBoolean(false);
     private AtomicBoolean isWriteComplete = new AtomicBoolean(false);
-    public Pipe(String name , int blockingQueueSize) {
+
+    public PipeImpl(String name, int blockingQueueSize) {
         this.name = name;
         this.queueSize = blockingQueueSize;
         this.contentQueue = new LinkedBlockingQueue<ContentChunk>(queueSize);
     }
+
     public ContentChunk getContent() {
         try {
             return contentQueue.take();
@@ -46,21 +51,26 @@ public class Pipe implements org.wso2.carbon.gateway.internal.common.Pipe {
             return null;
         }
     }
+
     public void addContentChunk(ContentChunk contentChunk) {
         if (contentChunk.isLastChunk()) {
             isReadComplete.getAndSet(true);
         }
         contentQueue.add(contentChunk);
     }
+
     public boolean isWriteComplete() {
         return isWriteComplete.get();
     }
+
     public boolean isReadComplete() {
         return isReadComplete.get();
     }
+
     public void addTrailingHeader(String key, String value) {
         trailingheaders.put(key, value);
     }
+
     public Map getTrailingheaderMap() {
         return trailingheaders;
     }

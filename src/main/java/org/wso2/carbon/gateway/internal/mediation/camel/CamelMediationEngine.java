@@ -23,38 +23,42 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.gateway.internal.common.*;
+import org.wso2.carbon.gateway.internal.common.CarbonCallback;
+import org.wso2.carbon.gateway.internal.common.CarbonMessage;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
+import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * responsible for receive the client message and send it in to camel
- * and send back the response message to client
+ * Responsible for receive the client message and send it in to camel
+ * and send back the response message to client.
  */
 @SuppressWarnings("unchecked")
 public class CamelMediationEngine implements CarbonMessageProcessor {
 
-    private static Logger LOG = LoggerFactory.getLogger(CamelMediationEngine.class);
-
-    private TransportSender sender;
+    private static final Logger log = LoggerFactory.getLogger(CamelMediationEngine.class);
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers = new ConcurrentHashMap<>();
+    private TransportSender sender;
 
     public CamelMediationEngine(TransportSender sender) {
         this.sender = sender;
         // this.sender.setCarbonMessageProcessor(this);
     }
 
-    @Override public boolean init(TransportSender sender) {
+    @Override
+    public boolean init(TransportSender sender) {
         return true;
     }
 
     //Client messages will receive here
     public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
         //start mediation
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Channel: {} received body: {}" + cMsg.getId().toString());
+        if (log.isDebugEnabled()) {
+            log.debug("Channel: {} received body: {}" + cMsg.getId().toString());
         }
         Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
@@ -66,7 +70,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
             try {
                 consumer.createUoW(exchange);
             } catch (Exception e) {
-                LOG.error("Unit of Work creation failed");
+                log.error("Unit of Work creation failed");
             }
             processAsynchronously(exchange, consumer, requestCallback);
 
@@ -81,7 +85,8 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     private void processAsynchronously(final Exchange exchange, final CamelMediationConsumer consumer,
                                        final CarbonCallback requestCallback) {
         consumer.getAsyncProcessor().process(exchange, new AsyncCallback() {
-            @Override public void done(boolean done) {
+            @Override
+            public void done(boolean done) {
 
                 CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
                 Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
@@ -103,7 +108,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
                 return consumers.get(key);
             }
         }
-        LOG.info("No route found for the message URL : " + messageURL);
+        log.info("No route found for the message URL : " + messageURL);
         return null;
     }
 

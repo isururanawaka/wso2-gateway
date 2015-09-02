@@ -14,6 +14,9 @@
  */
 package org.wso2.carbon.gateway.internal.transport.common;
 
+/**
+ * TODO class level comment.
+ */
 public class Constants {
     public static final String PROTOCOL_NAME = "http";
 

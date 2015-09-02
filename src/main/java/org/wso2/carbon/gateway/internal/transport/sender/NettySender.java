@@ -17,7 +17,11 @@ package org.wso2.carbon.gateway.internal.transport.sender;
 
 import com.lmax.disruptor.RingBuffer;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -38,7 +42,9 @@ import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
 
 import java.net.InetSocketAddress;
 
-
+/**
+ * TODO class level comment.
+ */
 public class NettySender extends TransportSender {
     private static final Logger LOG = LoggerFactory.getLogger(NettySender.class);
 
@@ -61,7 +67,7 @@ public class NettySender extends TransportSender {
     @Override
     public boolean send(CarbonMessage msg, CarbonCallback callback) {
         final ChannelHandlerContext inboundCtx = (ChannelHandlerContext)
-                   msg.getProperty(Constants.CHNL_HNDLR_CTX);
+                msg.getProperty(Constants.CHNL_HNDLR_CTX);
         final HttpRequest httpRequest = Util.createHttpRequest(msg);
         final Pipe pipe = msg.getPipe();
         final SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.SRC_HNDLR);
@@ -80,7 +86,8 @@ public class NettySender extends TransportSender {
                     DisruptorConfig disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.SENDER);
                     ringBuffer = disruptorConfig.getDisruptor();
                 }
-                TargetInitializer targetInitializer = new TargetInitializer(ringBuffer, channelCorrelator, config.getQueueSize());
+                TargetInitializer targetInitializer =
+                        new TargetInitializer(ringBuffer, channelCorrelator, config.getQueueSize());
                 Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
                 ChannelFuture future = bootstrap.connect(address);
                 final Channel outboundChannel = future.channel();
@@ -162,8 +169,8 @@ public class NettySender extends TransportSender {
     private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
-                   .channel(ctx.channel().getClass())
-                   .handler(targetInitializer);
+                .channel(ctx.channel().getClass())
+                .handler(targetInitializer);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -171,6 +178,9 @@ public class NettySender extends TransportSender {
         return bootstrap;
     }
 
+    /**
+     * TODO class level comment.
+     */
     public static class Config {
 
         private String id;
