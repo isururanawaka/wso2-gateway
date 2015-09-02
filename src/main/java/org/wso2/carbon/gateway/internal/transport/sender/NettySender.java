@@ -115,7 +115,7 @@ public class NettySender implements TransportSender {
 
     }
 
-    private synchronized void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
+    private void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
                                                           CarbonCallback carbonCallback, HttpRequest httpRequest) {
         SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
         ChannelHandlerContext inboundCtx = (ChannelHandlerContext) carbonMessage.getProperty(Constants.CHNL_HNDLR_CTX);
