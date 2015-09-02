@@ -37,6 +37,7 @@ import java.util.Map;
 /**
  * The CamelMediation producer handle the request and response with the backend.
  */
+@SuppressWarnings("unchecked")
 public class CamelMediationProducer extends DefaultAsyncProducer {
 
     private static Logger log = LoggerFactory.getLogger(CamelMediationProducer.class);
@@ -70,12 +71,11 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         return false;
     }
 
-    private void setCarbonHeaders(Exchange exchange) {
+    /*private void setCarbonHeaders(Exchange exchange) {
 
         CarbonMessageImpl request = (CarbonMessageImpl) exchange.getIn().getBody();
         Map<String, Object> headers = exchange.getIn().getHeaders();
 
-        //TODO change
         if (request != null) {
             request.setHost(host);
             request.setPort(port);
@@ -87,7 +87,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
             }
             request.setProperty(Constants.TRANSPORT_HEADERS, headers);
         }
-    }
+    }*/
 
     @Override public Endpoint getEndpoint() {
         return super.getEndpoint();

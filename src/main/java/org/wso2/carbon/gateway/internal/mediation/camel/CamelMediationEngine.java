@@ -33,13 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * responsible for receive the client message and send it in to camel
  * and send back the response message to client
  */
+@SuppressWarnings("unchecked")
 public class CamelMediationEngine implements CarbonMessageProcessor {
 
-    private static Logger log = LoggerFactory.getLogger(CamelMediationEngine.class);
+    private static Logger LOG = LoggerFactory.getLogger(CamelMediationEngine.class);
 
     private TransportSender sender;
-    private final ConcurrentHashMap<String, CamelMediationConsumer> consumers =
-            new ConcurrentHashMap<String, CamelMediationConsumer>();
+    private final ConcurrentHashMap<String, CamelMediationConsumer> consumers = new ConcurrentHashMap<>();
 
     public CamelMediationEngine(TransportSender sender) {
         this.sender = sender;
@@ -53,8 +53,8 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     //Client messages will receive here
     public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
         //start mediation
-        if (log.isDebugEnabled()) {
-            log.debug("Channel: {} received body: {}" + cMsg.getId().toString());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Channel: {} received body: {}" + cMsg.getId().toString());
         }
         Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
@@ -66,7 +66,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
             try {
                 consumer.createUoW(exchange);
             } catch (Exception e) {
-                log.error("Unit of Work creation failed");
+                LOG.error("Unit of Work creation failed");
             }
             processAsynchronously(exchange, consumer, requestCallback);
 
@@ -99,11 +99,11 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     private CamelMediationConsumer decideConsumer(String protocol, String host, String uri) {
         String messageURL = protocol + "://" + host + uri;
         for (String key : consumers.keySet()) {
-            if (key.equals(messageURL.toString()) || key.contains(messageURL.toString())) {
+            if (key.equals(messageURL) || key.contains(messageURL)) {
                 return consumers.get(key);
             }
         }
-        log.info("No route found for the message URL : " + messageURL);
+        LOG.info("No route found for the message URL : " + messageURL);
         return null;
     }
 
@@ -112,6 +112,6 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     }
 
     public void removeConsumer(String endpointKey) {
-
+        consumers.remove(endpointKey);
     }
 }

@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.gateway.internal.mediation.camel;
 
-import org.apache.camel.*;
+import org.apache.camel.Consumer;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
 import org.apache.camel.impl.DefaultEndpoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 
 import java.util.Map;
@@ -31,21 +32,10 @@ import java.util.Map;
  */
 public class CamelMediationEndpoint extends DefaultEndpoint {
 
-    private static Logger log = LoggerFactory.getLogger(CamelMediationEndpoint.class);
+    //private static Logger LOG = LoggerFactory.getLogger(CamelMediationEndpoint.class);
 
     private CamelMediationEngine engine;
     private CarbonCamelMessageUtil carbonCamelMessageUtil;
-
-/*    public CamelMediationEndpoint() {
-    }
-
-    public CamelMediationEndpoint(String uri, CamelMediationComponent component) {
-        super(uri, component);
-    }
-
-    public CamelMediationEndpoint(String endpointUri) {
-        super(endpointUri);
-    }*/
 
     public CamelMediationEndpoint(String uri, CamelMediationComponent component, CamelMediationEngine engine) {
         super(uri, component);
@@ -54,26 +44,26 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
     }
 
     public Producer createProducer() throws Exception {
-        CamelMediationProducer producer = new CamelMediationProducer(this, engine);
-        return producer;
+        //CamelMediationProducer producer = new CamelMediationProducer(this, engine);
+        return new CamelMediationProducer(this, engine);
     }
 
     public Consumer createConsumer(Processor processor) throws Exception {
-        CamelMediationConsumer consumer = new CamelMediationConsumer(this, processor, engine);
-        return consumer;
+        //CamelMediationConsumer consumer = new CamelMediationConsumer(this, processor, engine);
+        return new CamelMediationConsumer(this, processor, engine);
     }
 
     public boolean isSingleton() {
         return true;
     }
 
-    public void setEngine(CamelMediationEngine camelMediationEngine) {
+/*    public void setEngine(CamelMediationEngine camelMediationEngine) {
         this.engine = camelMediationEngine;
     }
 
     public CamelMediationEngine getEngine() {
         return engine;
-    }
+    }*/
 
     public Exchange createExchange(Map<String, Object> headers, CarbonMessage cmsg) {
         Exchange exchange = createExchange();
@@ -84,9 +74,9 @@ public class CamelMediationEndpoint extends DefaultEndpoint {
         return exchange;
     }
 
-    private void addHeadersToExchange(Message in, Map<String, Object> headers) {
+/*    private void addHeadersToExchange(Message in, Map<String, Object> headers) {
         in.setHeaders(headers);
-    }
+    }*/
 
     public CarbonCamelMessageUtil getCarbonCamelMessageUtil() {
         return carbonCamelMessageUtil;

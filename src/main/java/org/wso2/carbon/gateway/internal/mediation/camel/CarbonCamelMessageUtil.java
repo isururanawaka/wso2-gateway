@@ -72,17 +72,23 @@ public class CarbonCamelMessageUtil {
         } catch (URISyntaxException e) {
             log.error("Could not decode the URI in the message : " + request.getURI());
         }
-        // uri is path and query parameters
-        headers.put(Exchange.HTTP_URI, uri.getPath());
-        //HTTP_PATH vs HTTP_URI ?
-        headers.put(Exchange.HTTP_PATH, uri.getPath());
 
-        if (uri.getQuery() != null) {
-            headers.put(Exchange.HTTP_QUERY, uri.getQuery());
+        if (uri != null) {
+            String path = uri.getPath();
+            if (path != null) {
+                // uri is path and query parameters
+                headers.put(Exchange.HTTP_URI, path);
+                //HTTP_PATH vs HTTP_URI ?
+                headers.put(Exchange.HTTP_PATH, path);
+            }
+            if (uri.getQuery() != null) {
+                headers.put(Exchange.HTTP_QUERY, uri.getQuery());
+            }
+            if (uri.getRawQuery() != null) {
+                headers.put(Exchange.HTTP_RAW_QUERY, uri.getRawQuery());
+            }
         }
-        if (uri.getRawQuery() != null) {
-            headers.put(Exchange.HTTP_RAW_QUERY, uri.getRawQuery());
-        }
+
         if (transportHeaders.get("Content-Type") != null) {
             headers.put(Exchange.CONTENT_TYPE, transportHeaders.get("Content-Type"));
         }
@@ -94,9 +100,7 @@ public class CarbonCamelMessageUtil {
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
 
-            if ("Content-Type".equals(pair.getKey()) || "SOAPAction".equals(pair.getKey())) {
-                //these headers are already added
-            } else {
+            if (!"Content-Type".equals(pair.getKey()) && !"SOAPAction".equals(pair.getKey())) {
                 headers.put((String) pair.getKey(), pair.getValue());
             }
             it.remove();
@@ -127,9 +131,7 @@ public class CarbonCamelMessageUtil {
                     carbonBackEndRequestHeaders.put("Content-Type", pair.getValue());
                 } else if (key.equals(Exchange.SOAP_ACTION)) {
                     carbonBackEndRequestHeaders.put("SOAPAction", pair.getValue());
-                } else if (key.startsWith("Camel")) {
-                    //skip these headers
-                } else {
+                } else if (!key.startsWith("Camel")) {
                     carbonBackEndRequestHeaders.put(key, pair.getValue());
                 }
                 it.remove();
