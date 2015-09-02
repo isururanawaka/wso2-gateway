@@ -23,6 +23,8 @@ import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
+import java.util.Map;
+
 /**
  * A class that responsible for create server side channels.
  */
@@ -34,14 +36,13 @@ public class GateWayNettyInitializer implements CarbonNettyServerInitializer {
     private int noOfChannels;
     private int queueSize;
 
-
     public GateWayNettyInitializer(CarbonMessageProcessor engine, int queueSize) {
         this.engine = engine;
         this.queueSize = queueSize;
     }
 
     @Override
-    public void initChannel(SocketChannel ch) {
+    public void initChannel(SocketChannel ch, Map<String, String> parameters) {
         if (log.isDebugEnabled()) {
             log.info("Initializing source channel pipeline");
         }
