@@ -40,11 +40,11 @@ public class CamelMediationComponent extends DefaultComponent {
         return endpoint;
     }
 
-    //when the camel component (wso2-gw) starts this method will be called initially
+/*    //when the camel component (wso2-gw) starts this method will be called initially
     @Override
     protected void doStart() throws Exception {
         super.doStart();
         //start netty transport from here get a CamelMediationEngine object and set it to engine.
         //this.engine = (CamelMediationEngine) new POCController().startPOCController();
-    }
+    }*/
 }
