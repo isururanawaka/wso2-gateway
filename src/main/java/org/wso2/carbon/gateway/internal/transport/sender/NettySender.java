@@ -66,7 +66,7 @@ public class NettySender implements TransportSender {
 
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 
-        if (isRouteExists(route, msg)) {
+        if (!isRouteExists(route, msg)) {
 
             createAndCacheNewConnection(msg, route, config.getQueueSize(), callback, httpRequest);
 
