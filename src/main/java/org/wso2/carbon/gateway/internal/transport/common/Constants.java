@@ -55,4 +55,16 @@ public class Constants {
 
     public static final String OUTBOUND = "Outbound";
 
+    public static final String WAIT_STRATEGY = "disruptor.wait.strategy";
+
+    public static final String DISRUPTOR_BUFFER_SIZE = "disruptor.buffer.size";
+
+    public static final String DISRUPTOR_COUNT = "disruptor.count";
+
+    public static final String DISRUPTOR_EVENT_HANDLER_COUNT = "disruptor.eventhandler.count";
+
+    public static final String CONTENT_QUEUE_SIZE = "content.queue.size";
+
+    public static final String SHARE_DISRUPTOR_WITH_OUTBOUND = "share.disruptor.with.outbound";
+
 }
