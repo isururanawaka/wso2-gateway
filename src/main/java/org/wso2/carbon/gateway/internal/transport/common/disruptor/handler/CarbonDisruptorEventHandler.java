@@ -18,51 +18,45 @@ package org.wso2.carbon.gateway.internal.transport.common.disruptor.handler;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
-import org.wso2.carbon.gateway.internal.transport.common.Constants;
-import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.event.CarbonDisruptorEvent;
+
+import java.util.concurrent.locks.Lock;
 
 /**
  * Event Consumer of the Disruptor.
  */
 public class CarbonDisruptorEventHandler extends DisruptorEventHandler {
 
-    private int eventHandlerid;
+    private CarbonMessageProcessor carbonMessageProcessor;
 
-    public CarbonDisruptorEventHandler(int eventHandlerid) {
-        this.eventHandlerid = eventHandlerid;
+    public CarbonDisruptorEventHandler(CarbonMessageProcessor  engine) {
+        carbonMessageProcessor = engine;
     }
 
     @Override
     public void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception {
         CarbonMessage carbonMessage = (CarbonMessage) carbonDisruptorEvent.getEvent();
-        int messageID = carbonDisruptorEvent.getEventId();
-        if (carbonMessage.getDirection() == CarbonMessage.IN &&
+        Lock lock = carbonMessage.getLock();
+        if (carbonMessage.getDirection() == CarbonMessage.REQUEST) {
+            // Mechanism to process each event from only one event handler
+            if (lock.tryLock()) {
+                CarbonCallback carbonCallback = carbonMessage.getCarbonCallback();
+                carbonMessageProcessor.receive(carbonMessage, carbonCallback);
+                // lock.unlock() does not used because if there are multiple event handlers and same event
+                // should not processed by multiple event handlers .If  unlock happens too early for a event before
+                // other Event handler object reads that event then there will be a probability of executing
+                // same event by multiple event handlers.
+            }
+        } else if (carbonMessage.getDirection() == CarbonMessage.RESPONSE) {
 
-                canProcess(DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
-                        eventHandlerid, messageID)) {
+            if (lock.tryLock()) {
 
-            CarbonMessageProcessor engine = (CarbonMessageProcessor) carbonMessage.getProperty(Constants.ENGINE);
-            CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
-            engine.receive(carbonMessage, carbonCallback);
+                CarbonCallback carbonCallback = carbonMessage.getCarbonCallback();
+                carbonCallback.done(carbonMessage);
 
-        } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
+            }
 
-                DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) != null &&
-                canProcess(DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND).
-                        getNoOfEventHandlersPerDisruptor(), eventHandlerid, messageID)) {
 
-            CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
-            carbonCallback.done(carbonMessage);
-
-        } else if (carbonMessage.getDirection() == CarbonMessage.OUT &&
-
-                DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND) == null && canProcess(
-                DisruptorFactory.getDisruptorConfig(Constants.INBOUND).getNoOfEventHandlersPerDisruptor(),
-                eventHandlerid, messageID)) {
-
-            CarbonCallback carbonCallback = (CarbonCallback) carbonMessage.getProperty(Constants.RESPONSE_CALLBACK);
-            carbonCallback.done(carbonMessage);
         }
     }
 }

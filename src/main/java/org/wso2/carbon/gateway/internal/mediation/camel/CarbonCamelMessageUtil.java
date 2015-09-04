@@ -23,7 +23,6 @@ import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.net.URI;
@@ -113,7 +112,7 @@ public class CarbonCamelMessageUtil {
     //get camel headers from mediated request and set in carbon message
     public void setCarbonHeadersToBackendRequest(Exchange exchange, String host, int port, String uri) {
 
-        CarbonMessageImpl request = (CarbonMessageImpl) exchange.getIn().getBody();
+        CarbonMessage request = (CarbonMessage) exchange.getIn().getBody();
         Map<String, Object> headers = exchange.getIn().getHeaders();
 
         if (request != null) {

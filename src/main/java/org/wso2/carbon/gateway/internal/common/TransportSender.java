@@ -18,10 +18,15 @@ package org.wso2.carbon.gateway.internal.common;
 
 
 /**
- * Interface for Message Sender.
+ * Interface for Message Sender to the BE
  */
 public interface TransportSender {
-
+    /**
+     * Should include the logic for handover messages to BE
+     * @param msg Mediated Request
+     * @param callback Carbon callback created by engine
+     * @return void
+     */
     public boolean send(CarbonMessage msg, CarbonCallback callback);
 
 }

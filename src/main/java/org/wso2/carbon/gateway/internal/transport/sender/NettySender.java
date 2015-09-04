@@ -25,8 +25,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
@@ -45,10 +43,7 @@ import java.net.InetSocketAddress;
  * A class creates connections with BE and send messages.
  */
 public class NettySender implements TransportSender {
-    private static final Logger LOG = LoggerFactory.getLogger(NettySender.class);
-    private final Object lock = new Object();
     private Config config;
-    private int channelCorrelator;
 
 
     public NettySender(Config conf) {
@@ -84,8 +79,8 @@ public class NettySender implements TransportSender {
     private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
-                .channel(ctx.channel().getClass())
-                .handler(targetInitializer);
+                   .channel(ctx.channel().getClass())
+                   .handler(targetInitializer);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
@@ -115,59 +110,51 @@ public class NettySender implements TransportSender {
 
     }
 
-
-    private  void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
-                                                          CarbonCallback carbonCallback, HttpRequest httpRequest) {
+    //create and cache new connections for BE and cache it in httproute map in channel for later use.
+    private void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
+                                             CarbonCallback carbonCallback, HttpRequest httpRequest) {
         SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
         ChannelHandlerContext inboundCtx = (ChannelHandlerContext) carbonMessage.getProperty(Constants.CHNL_HNDLR_CTX);
-        synchronized (srcHandler.getLock()) {
-            if (srcHandler.getChannelFuture(route) == null) {
-                synchronized (lock) {
-                    channelCorrelator++;
-                }
-            }
-            RingBuffer ringBuffer = (RingBuffer) carbonMessage.getProperty(Constants.DISRUPTOR);
-            if (ringBuffer == null) {
-                DisruptorConfig disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.OUTBOUND);
-                ringBuffer = disruptorConfig.getDisruptor();
-            }
-            TargetInitializer targetInitializer =
-                    new TargetInitializer(ringBuffer, channelCorrelator, queueSize);
-            Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
-            InetSocketAddress inetSocketAddress = new InetSocketAddress
-                    (carbonMessage.getHost(), carbonMessage.getPort());
-            ChannelFuture future = bootstrap.connect(inetSocketAddress);
-            final Channel outboundChannel = future.channel();
-            addCloseListener(outboundChannel, srcHandler, route);
-            TargetChanel targetChanel = new TargetChanel();
-            srcHandler.addChannelFuture(route, targetChanel);
 
-            future.addListener(new ChannelFutureListener() {
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        srcHandler.setTargetHandler(targetInitializer.getTargetHandler());
-                        targetInitializer.getTargetHandler().setCallback(carbonCallback);
-
-                        writeContent(outboundChannel, httpRequest, carbonMessage);
-
-                        srcHandler.getChannelFuture(route).setChannelFuture(future).setChannelFutureReady(true);
-
-                    } else {
-                        outboundChannel.close();
-                    }
-                }
-            });
-
+        RingBuffer ringBuffer = (RingBuffer) carbonMessage.getProperty(Constants.DISRUPTOR);
+        if (ringBuffer == null) {
+            DisruptorConfig disruptorConfig = DisruptorFactory.
+                       getDisruptorConfig(DisruptorFactory.DisruptorType.OUTBOUND);
+            ringBuffer = disruptorConfig.getDisruptor();
         }
+        TargetInitializer targetInitializer =
+                   new TargetInitializer(ringBuffer, queueSize);
+        Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
+        InetSocketAddress inetSocketAddress = new InetSocketAddress
+                   (carbonMessage.getHost(), carbonMessage.getPort());
+        ChannelFuture future = bootstrap.connect(inetSocketAddress);
+        final Channel outboundChannel = future.channel();
+        addCloseListener(outboundChannel, srcHandler, route);
+        TargetChanel targetChanel = new TargetChanel();
+        srcHandler.addChannelFuture(route, targetChanel);
+
+        future.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (future.isSuccess()) {
+                    srcHandler.setTargetHandler(targetInitializer.getTargetHandler());
+                    targetInitializer.getTargetHandler().setCallback(carbonCallback);
+
+                    writeContent(outboundChannel, httpRequest, carbonMessage);
+
+                    srcHandler.getChannelFuture(route).setChannelFuture(future);
+
+                } else {
+                    outboundChannel.close();
+                }
+            }
+        });
+
     }
 
 
     private void writeUsingExistingConnection(CarbonMessage carbonMessage, HttpRequest httpRequest, HttpRoute route,
                                               CarbonCallback carbonCallback) {
         SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
-
-        while (!srcHandler.getChannelFuture(route).isChannelFutureReady()) {
-        }
 
         TargetChanel targetChanel = srcHandler.getChannelFuture(route);
 
@@ -178,8 +165,11 @@ public class NettySender implements TransportSender {
             writeContent(targetChanel.getChannelFuture().channel(), httpRequest, carbonMessage);
 
         } else {
-            //TODO handle close connection
-            LOG.error("Channel is closed");
+
+            //handle closed connections
+            srcHandler.removeChannelFuture(route);
+
+            createAndCacheNewConnection(carbonMessage, route, config.getQueueSize(), carbonCallback, httpRequest);
         }
     }
 

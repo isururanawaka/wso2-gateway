@@ -24,17 +24,8 @@ import io.netty.channel.ChannelFuture;
 public class TargetChanel {
 
 
-    private boolean channelFutureReady;
-
     private ChannelFuture channelFuture;
 
-    public boolean isChannelFutureReady() {
-        return channelFutureReady;
-    }
-
-    public void setChannelFutureReady(boolean channelFutureReady) {
-        this.channelFutureReady = channelFutureReady;
-    }
 
     public ChannelFuture getChannelFuture() {
         return channelFuture;
