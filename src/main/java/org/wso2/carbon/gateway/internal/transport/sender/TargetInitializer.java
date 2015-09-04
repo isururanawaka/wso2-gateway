@@ -33,12 +33,10 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
 
     private int queuesize;
 
-    private int channelId;
 
 
-    public TargetInitializer(RingBuffer ringBuffer, int channelId, int queuesize) {
+    public TargetInitializer(RingBuffer ringBuffer, int queuesize) {
         this.ringBuffer = ringBuffer;
-        this.channelId = channelId;
         this.queuesize = queuesize;
     }
 
@@ -47,7 +45,7 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
-        handler = new TargetHandler(ringBuffer, channelId, queuesize);
+        handler = new TargetHandler(ringBuffer, queuesize);
         p.addLast(HANDLER, handler);
     }
 

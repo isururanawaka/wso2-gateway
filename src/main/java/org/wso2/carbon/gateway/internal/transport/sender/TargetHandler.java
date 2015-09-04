@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
@@ -44,12 +43,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private RingBuffer ringBuffer;
     private CarbonMessage cMsg;
     private int queuesize;
-    private int trgId;
 
 
-    public TargetHandler(RingBuffer ringBuffer, int trgId, int queuesize) {
+    public TargetHandler(RingBuffer ringBuffer, int queuesize) {
         this.ringBuffer = ringBuffer;
-        this.trgId = trgId;
         this.queuesize = queuesize;
     }
 
@@ -62,18 +59,21 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpResponse) {
-            cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+            cMsg = new CarbonMessage(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setDirection(CarbonMessage.OUT);
-            cMsg.setProperty(Constants.RESPONSE_CALLBACK, callback);
-            HttpResponse httpResponse = (HttpResponse) msg;
-            cMsg.setDirection(CarbonMessageImpl.OUT);
-            cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
-            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+            cMsg.setDirection(CarbonMessage.RESPONSE);
+            cMsg.setCarbonCallback(callback);
             Pipe pipe = new PipeImpl(queuesize);
             cMsg.setPipe(pipe);
-            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg, trgId));
+            HttpResponse httpResponse = (HttpResponse) msg;
+            cMsg.setDirection(CarbonMessage.RESPONSE);
+
+
+            cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
+            cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
+
+            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {

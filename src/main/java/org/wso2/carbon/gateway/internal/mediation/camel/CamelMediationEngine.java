@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
@@ -53,7 +52,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
     public boolean receive(CarbonMessage cMsg, CarbonCallback requestCallback) {
         //start mediation
         if (log.isDebugEnabled()) {
-            log.debug("Channel: {} received body: {}" + cMsg.getId().toString());
+            log.debug("Channel: {} received body: {}");
         }
         Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
         CamelMediationConsumer consumer =
@@ -81,7 +80,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
                                        final CarbonCallback requestCallback) {
         consumer.getAsyncProcessor().process(exchange, done -> {
 
-            CarbonMessageImpl mediatedResponse = exchange.getOut().getBody(CarbonMessageImpl.class);
+            CarbonMessage mediatedResponse = exchange.getOut().getBody(CarbonMessage.class);
             Map<String, Object> mediatedHeaders = exchange.getOut().getHeaders();
             mediatedResponse.setProperty(Constants.TRANSPORT_HEADERS, mediatedHeaders);
 

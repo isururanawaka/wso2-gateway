@@ -25,15 +25,12 @@ public class CarbonEventPublisher implements EventTranslator<CarbonDisruptorEven
 
     private Object event;
 
-    private int eventId;
 
-    public CarbonEventPublisher(Object event, int eventId) {
+    public CarbonEventPublisher(Object event) {
         this.event = event;
-        this.eventId = eventId;
     }
 
     public void translateTo(CarbonDisruptorEvent event, long sequence) {
         event.setEvent(this.event);
-        event.setEventId(eventId);
     }
 }

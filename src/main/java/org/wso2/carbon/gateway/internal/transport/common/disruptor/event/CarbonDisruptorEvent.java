@@ -24,7 +24,6 @@ public class CarbonDisruptorEvent {
 
     public static final EventFactory<CarbonDisruptorEvent> EVENT_FACTORY = CarbonDisruptorEvent::new;
     private Object event;
-    private int eventId;
 
     public CarbonDisruptorEvent() {
     }
@@ -37,12 +36,5 @@ public class CarbonDisruptorEvent {
         this.event = event;
     }
 
-    public int getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(int eventId) {
-        this.eventId = eventId;
-    }
 
 }

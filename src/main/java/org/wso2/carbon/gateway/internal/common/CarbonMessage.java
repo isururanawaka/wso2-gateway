@@ -15,46 +15,108 @@
 
 package org.wso2.carbon.gateway.internal.common;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Represents a CarbonMessage.
+ * Represents a  common message for all the transports and message processors. Canonical Format for represent
+ * abstract message
  */
-public abstract class CarbonMessage {
-    public static final int IN = 0;
-    public static final int OUT = 1;
+public class CarbonMessage {
+    public static final int REQUEST = 0;
+    public static final int RESPONSE = 1;
 
-    public abstract UUID getId();
+    private int port;
+    private String protocol;
+    private String host;
+    private String to;
+    private Pipe pipe;
 
-
-    public abstract int getDirection();
-
-
-    public abstract void setDirection(int direction);
-
-    public abstract Pipe getPipe();
-
-    public abstract void setPipe(Pipe pipe);
-
-    public abstract String getHost();
-
-    public abstract void setHost(String host);
-
-    public abstract int getPort();
-
-    public abstract void setPort(int port);
-
-    public abstract String getURI();
-
-    public abstract void setURI(String to);
+    private CarbonCallback carbonCallback;
 
 
-    public abstract String getProtocol();
 
-    public abstract Object getProperty(String key);
+    private int direction;
+
+    private Map<String, Object> properties = new HashMap<>();
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public CarbonMessage(String protocol) {
+        this.protocol = protocol;
+    }
 
 
-    public abstract void setProperty(String key, Object value);
+    public Pipe getPipe() {
+        return pipe;
+    }
 
+    public void setPipe(Pipe pipe) {
+        this.pipe = pipe;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getURI() {
+        return to;
+    }
+
+    public void setURI(String to) {
+        this.to = to;
+    }
+
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+
+    public void setProperty(String key, Object value) {
+        properties.put(key, value);
+    }
+
+    public Object getProperty(String key) {
+        if (properties != null) {
+            return properties.get(key);
+        } else {
+            return null;
+        }
+    }
+
+    public CarbonCallback getCarbonCallback() {
+        return carbonCallback;
+    }
+
+    public void setCarbonCallback(CarbonCallback carbonCallback) {
+        this.carbonCallback = carbonCallback;
+    }
+
+    public Lock getLock() {
+        return lock;
+    }
 
 }

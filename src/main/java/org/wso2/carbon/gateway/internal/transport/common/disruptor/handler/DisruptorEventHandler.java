@@ -25,16 +25,5 @@ public abstract class DisruptorEventHandler implements EventHandler<CarbonDisrup
 
     public abstract void onEvent(CarbonDisruptorEvent carbonDisruptorEvent, long l, boolean b) throws Exception;
 
-    public boolean canProcess(int totalNumOfEventHandlers, int handlerId, int messageId) {
-        if (messageId > totalNumOfEventHandlers) {
-            if (handlerId == messageId % totalNumOfEventHandlers) {
-                return true;
-            }
-        } else {
-            if (handlerId == totalNumOfEventHandlers % messageId) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 }

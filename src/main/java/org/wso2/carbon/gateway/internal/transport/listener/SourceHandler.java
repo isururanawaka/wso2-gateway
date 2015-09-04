@@ -23,8 +23,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
@@ -47,29 +45,21 @@ import java.util.Map;
 public class SourceHandler extends ChannelInboundHandlerAdapter {
     private static Logger log = Logger.getLogger(SourceHandler.class);
 
-    private CarbonMessageProcessor engine;
     private RingBuffer disruptor;
     private ChannelHandlerContext ctx;
     private CarbonMessage cMsg;
     private Map<String, TargetChanel> channelFutureMap = new HashMap<>();
     private TargetHandler targetHandler;
-    private int srcId;
     private int queueSize;
     private DisruptorConfig disruptorConfig;
-    private Object lock = new Object();
 
-    public SourceHandler(CarbonMessageProcessor engine, int srcId, int queueSize) throws Exception {
-        if (engine == null) {
-            throw new Exception("Cannot find registered Engine");
-        }
-        this.engine = engine;
-        this.srcId = srcId;
+    public SourceHandler(int queueSize) throws Exception {
         this.queueSize = queueSize;
     }
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-        disruptorConfig = DisruptorFactory.getDisruptorConfig(Constants.INBOUND);
+        disruptorConfig = DisruptorFactory.getDisruptorConfig(DisruptorFactory.DisruptorType.INBOUND);
         disruptor = disruptorConfig.getDisruptor();
         this.ctx = ctx;
     }
@@ -78,27 +68,26 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
-            cMsg = new CarbonMessageImpl(Constants.PROTOCOL_NAME);
+            cMsg = new CarbonMessage(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, this.ctx);
-            cMsg.setProperty(Constants.SRC_HNDLR, this);
-            cMsg.setProperty(Constants.ENGINE, engine);
-            cMsg.setProperty(Constants.SRC_HNDLR, this);
             ResponseCallback responseCallback = new ResponseCallback(this.ctx);
-            cMsg.setProperty(Constants.RESPONSE_CALLBACK, responseCallback);
+            cMsg.setCarbonCallback(responseCallback);
             HttpRequest httpRequest = (HttpRequest) msg;
             cMsg.setURI(httpRequest.getUri());
+            Pipe pipe = new PipeImpl(queueSize);
+            cMsg.setPipe(pipe);
+
+            cMsg.setProperty(Constants.CHNL_HNDLR_CTX, this.ctx);
+            cMsg.setProperty(Constants.SRC_HNDLR, this);
             cMsg.setProperty(Constants.HTTP_VERSION, httpRequest.getProtocolVersion().text());
             cMsg.setProperty(Constants.HTTP_METHOD, httpRequest.getMethod().name());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpRequest));
-            Pipe pipe = new PipeImpl(queueSize);
 
-            cMsg.setPipe(pipe);
             if (disruptorConfig.isShared()) {
                 cMsg.setProperty(Constants.DISRUPTOR, disruptor);
             }
-            disruptor.publishEvent(new CarbonEventPublisher(cMsg, srcId));
+            disruptor.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -136,8 +125,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.targetHandler = targetHandler;
     }
 
-    public Object getLock() {
-        return lock;
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+        log.error("Exception caught in Netty Source handler" , cause);
     }
 }
 

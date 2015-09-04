@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.net.MalformedURLException;
@@ -66,7 +65,7 @@ public class CamelMediationProducer extends DefaultAsyncProducer {
         //change the header parameters according to the routed endpoint url
         carbonCamelMessageUtil.setCarbonHeadersToBackendRequest(exchange, host, port, uri);
         //setCarbonHeaders(exchange);
-        engine.getSender().send(exchange.getIn().getBody(CarbonMessageImpl.class),
+        engine.getSender().send(exchange.getIn().getBody(CarbonMessage.class),
                 new NettyHttpBackEndCallback(exchange, callback));
         return false;
     }

@@ -51,9 +51,6 @@ public class Constants {
 
     public static final String SLEEP_WAITING = "SLEEP_WAITING";
 
-    public static final String INBOUND = "Inbound";
-
-    public static final String OUTBOUND = "Outbound";
 
     public static final String WAIT_STRATEGY = "disruptor.wait.strategy";
 

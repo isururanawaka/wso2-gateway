@@ -23,7 +23,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.GateWayRouteBuilder;
-import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationComponent;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationEngine;
@@ -41,10 +40,8 @@ import java.util.Map;
 public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
 
     private static final Logger log = Logger.getLogger(GatewayNettyInitializer.class);
-    private final Object lock = new Object();
-    private CarbonMessageProcessor engine;
-    private int channelNumber;
     private int queueSize = 32544;
+
 
     public GatewayNettyInitializer() {
 
@@ -52,23 +49,6 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
 
     @Override
     public void setup(Map<String, String> parameters) {
-        if (parameters != null) {
-            DisruptorConfig disruptorConfig =
-                       new DisruptorConfig(parameters.get(Constants.DISRUPTOR_BUFFER_SIZE),
-                                           parameters.get(Constants.DISRUPTOR_COUNT),
-                                           parameters.get(Constants.DISRUPTOR_EVENT_HANDLER_COUNT),
-                                           parameters.get(Constants.WAIT_STRATEGY),
-                                           Boolean.parseBoolean(Constants.SHARE_DISRUPTOR_WITH_OUTBOUND));
-            DisruptorFactory.createDisruptors(Constants.INBOUND, disruptorConfig);
-            String queueSize = parameters.get(Constants.CONTENT_QUEUE_SIZE);
-            if (queueSize != null) {
-                this.queueSize = Integer.parseInt(queueSize);
-            }
-        } else {
-            log.warn("Disruptor specific parameters are not specified in configuration hence using default configs");
-            DisruptorConfig disruptorConfig = new DisruptorConfig();
-            DisruptorFactory.createDisruptors(Constants.INBOUND, disruptorConfig);
-        }
 
         NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(this.queueSize);
         TransportSender sender = new NettySender(config);
@@ -76,13 +56,32 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         context.disableJMX();
         CamelMediationEngine engine = new CamelMediationEngine(sender);
         context.addComponent("wso2-gw", new CamelMediationComponent(engine));
-        this.engine = engine;
         try {
             context.addRoutes(new GateWayRouteBuilder());
             context.start();
         } catch (Exception e) {
             log.error("Cannot start Camel Context", e);
         }
+
+        if (parameters != null) {
+            DisruptorConfig disruptorConfig =
+                       new DisruptorConfig(parameters.get(Constants.DISRUPTOR_BUFFER_SIZE),
+                                           parameters.get(Constants.DISRUPTOR_COUNT),
+                                           parameters.get(Constants.DISRUPTOR_EVENT_HANDLER_COUNT),
+                                           parameters.get(Constants.WAIT_STRATEGY),
+                                           Boolean.parseBoolean(Constants.SHARE_DISRUPTOR_WITH_OUTBOUND));
+            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig , engine);
+            String queueSize = parameters.get(Constants.CONTENT_QUEUE_SIZE);
+            if (queueSize != null) {
+                this.queueSize = Integer.parseInt(queueSize);
+            }
+        } else {
+            log.warn("Disruptor specific parameters are not specified in configuration hence using default configs");
+            DisruptorConfig disruptorConfig = new DisruptorConfig();
+            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig , engine);
+        }
+
+
     }
 
     @Override
@@ -93,14 +92,12 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
-        synchronized (lock) {
-            channelNumber++;
             try {
-                p.addLast("handler", new SourceHandler(engine, channelNumber, queueSize));
+                p.addLast("handler", new SourceHandler(queueSize));
             } catch (Exception e) {
                 log.error("Cannot Create SourceHandler ", e);
             }
         }
-    }
+
 
 }
