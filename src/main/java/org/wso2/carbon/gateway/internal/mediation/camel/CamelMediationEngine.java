@@ -98,9 +98,9 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
         }
         if (consumers.size() == 1) {
             String key = consumers.keySet().iterator().next();
-            if (!key.contains("http")) {
+            if (uri.contains(key)) {
                 consumer = consumers.get(key);
-                return consumers.get(key);
+                return consumer;
             }
         }
         String messageURL = protocol + "://" + host + uri;

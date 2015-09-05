@@ -25,19 +25,14 @@ public class GateWayRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("wso2-gw:http://204.13.85.2:9090/service").choice().when(header("routeId").regex("r1"))
-                .to("wso2-gw:http://204.13.85.5:5050/services/echo")
-                .when(header("routeId").regex("r2"))
-                .to("wso2-gw:http://204.13.85.5:6060/services/echo")
-                .otherwise()
-                .to("wso2-gw:http://204.13.85.5:7070/services/echo");
-
-        from("wso2-gw:http://localhost:9090/service").choice().when(header("routeId").regex("r1"))
-                .to("wso2-gw:http://localhost:9000/services/SimpleStockQuoteService")
-                .when(header("routeId").regex("r2"))
-                .to("wso2-gw:http://localhost:6060/services/echo")
-                .otherwise()
-                .to("wso2-gw:http://localhost:7070/services/echo");
+        from("wso2-gw:/api")
+                .choice()
+                    .when(header("routeId").regex("r1"))
+                        .to("wso2-gw:http://localhost:9000/service/Foo")
+                    .when(header("routeId").regex("r2"))
+                        .to("wso2-gw:http://localhost:9000/service/Foo")
+                    .otherwise()
+                        .to("wso2-gw:http://localhost:9000/service/Foo");
 
     }
 }
