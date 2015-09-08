@@ -35,8 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Responsible for receive the client message and send it in to camel
  * and send back the response message to client.
  */
-@SuppressWarnings("unchecked")
-public class CamelMediationEngine implements CarbonMessageProcessor {
+@SuppressWarnings("unchecked") public class CamelMediationEngine implements CarbonMessageProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(CamelMediationEngine.class);
     private final ConcurrentHashMap<String, CamelMediationConsumer> consumers = new ConcurrentHashMap<>();
@@ -55,8 +54,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
             log.debug("Channel: {} received body: {}");
         }
         Map<String, Object> transportHeaders = (Map<String, Object>) cMsg.getProperty(Constants.TRANSPORT_HEADERS);
-        CamelMediationConsumer consumer =
-                decideConsumer(cMsg.getProtocol(), (String) transportHeaders.get("Host"), cMsg.getURI());
+        CamelMediationConsumer consumer = decideConsumer(cMsg.getURI());
         if (consumer != null) {
             final Exchange exchange = consumer.getEndpoint().createExchange(transportHeaders, cMsg);
             exchange.setPattern(ExchangePattern.InOut);
@@ -92,7 +90,7 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
         });
     }
 
-    private CamelMediationConsumer decideConsumer(String protocol, String host, String uri) {
+    private CamelMediationConsumer decideConsumer(String uri) {
         if (consumer != null) {
             return consumer;
         }
@@ -103,13 +101,12 @@ public class CamelMediationEngine implements CarbonMessageProcessor {
                 return consumer;
             }
         }
-        String messageURL = protocol + "://" + host + uri;
         for (String key : consumers.keySet()) {
-            if (key.equals(messageURL) || key.contains(messageURL)) {
+            if (key.contains(uri)) {
                 return consumers.get(key);
             }
         }
-        log.info("No route found for the message URL : " + messageURL);
+        log.info("No route found for the message URI : " + uri);
         return null;
     }
 

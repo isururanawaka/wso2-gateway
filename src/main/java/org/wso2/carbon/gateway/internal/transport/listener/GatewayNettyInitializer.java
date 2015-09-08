@@ -21,8 +21,8 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import org.apache.camel.CamelContext;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.model.RoutesDefinition;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.gateway.internal.GateWayRouteBuilder;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationComponent;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationEngine;
@@ -32,6 +32,9 @@ import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.Disrup
 import org.wso2.carbon.gateway.internal.transport.sender.NettySender;
 import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -42,6 +45,8 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
     private static final Logger log = Logger.getLogger(GatewayNettyInitializer.class);
     private int queueSize = 32544;
 
+    public static final String CAMEL_ROUTING_CONFIG_FILE = "repository" + File.separator + "conf" + File.separator +
+            "camel" + File.separator + "camel-routing.xml";
 
     public GatewayNettyInitializer() {
 
@@ -56,11 +61,24 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         context.disableJMX();
         CamelMediationEngine engine = new CamelMediationEngine(sender);
         context.addComponent("wso2-gw", new CamelMediationComponent(engine));
+
+        FileInputStream fis = null;
         try {
-            context.addRoutes(new GateWayRouteBuilder());
+            fis = new FileInputStream(CAMEL_ROUTING_CONFIG_FILE);
+            RoutesDefinition routes = context.loadRoutesDefinition(fis);
+            context.addRouteDefinitions(routes.getRoutes());
             context.start();
         } catch (Exception e) {
-            log.error("Cannot start Camel Context", e);
+            String msg = "Error while loading " + CAMEL_ROUTING_CONFIG_FILE + " configuration file";
+            throw new RuntimeException(msg, e);
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    log.error("No Connection to close", e);
+                }
+            }
         }
 
         if (parameters != null) {
