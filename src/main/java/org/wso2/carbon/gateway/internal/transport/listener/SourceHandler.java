@@ -33,7 +33,6 @@ import org.wso2.carbon.gateway.internal.transport.common.PipeImpl;
 import org.wso2.carbon.gateway.internal.transport.common.Util;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorConfig;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
-import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.CarbonEventPublisher;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetChanel;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetHandler;
 
@@ -57,7 +56,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private CarbonMessageProcessor carbonMessageProcessor;
     private ResponseCallback responseCallback;
 
-    public SourceHandler(CarbonMessageProcessor carbonMessageProcessor ,int queueSize) throws Exception {
+    public SourceHandler(CarbonMessageProcessor carbonMessageProcessor, int queueSize) throws Exception {
         this.queueSize = queueSize;
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
@@ -76,7 +75,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg = new CarbonMessage(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-             responseCallback = new ResponseCallback(this.ctx);
+            responseCallback = new ResponseCallback(this.ctx);
             cMsg.setCarbonCallback(responseCallback);
             HttpRequest httpRequest = (HttpRequest) msg;
             cMsg.setURI(httpRequest.getUri());
@@ -100,8 +99,8 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                     HttpContent httpContent = (HttpContent) msg;
                     chunk = new HTTPContentChunk(httpContent);
                     cMsg.getPipe().addContentChunk(chunk);
-                    if(msg instanceof LastHttpContent){
-                       carbonMessageProcessor.receive(cMsg,responseCallback);
+                    if (msg instanceof LastHttpContent) {
+                        carbonMessageProcessor.receive(cMsg, responseCallback);
                     }
                 }
             }
@@ -136,7 +135,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
-        log.error("Exception caught in Netty Source handler" , cause);
+        log.error("Exception caught in Netty Source handler", cause);
     }
 }
 
