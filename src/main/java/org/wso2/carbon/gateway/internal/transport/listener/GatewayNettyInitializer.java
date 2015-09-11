@@ -23,6 +23,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.model.RoutesDefinition;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.gateway.internal.common.CarbonMessage;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationComponent;
 import org.wso2.carbon.gateway.internal.mediation.camel.CamelMediationEngine;
@@ -45,6 +47,8 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
     private static final Logger log = Logger.getLogger(GatewayNettyInitializer.class);
     private int queueSize = 32544;
 
+    private CarbonMessageProcessor carbonMessageProcessor;
+
     public static final String CAMEL_ROUTING_CONFIG_FILE = "repository" + File.separator + "conf" + File.separator +
             "camel" + File.separator + "camel-routing.xml";
 
@@ -61,6 +65,7 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         context.disableJMX();
         CamelMediationEngine engine = new CamelMediationEngine(sender);
         context.addComponent("wso2-gw", new CamelMediationComponent(engine));
+        carbonMessageProcessor = engine;
 
         FileInputStream fis = null;
         try {
@@ -111,7 +116,7 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
             try {
-                p.addLast("handler", new SourceHandler(queueSize));
+                p.addLast("handler", new SourceHandler(carbonMessageProcessor ,queueSize));
             } catch (Exception e) {
                 log.error("Cannot Create SourceHandler ", e);
             }

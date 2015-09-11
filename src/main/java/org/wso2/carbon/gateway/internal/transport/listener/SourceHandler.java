@@ -21,8 +21,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
+import org.wso2.carbon.gateway.internal.common.CarbonMessageProcessor;
 import org.wso2.carbon.gateway.internal.common.Pipe;
 import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.HTTPContentChunk;
@@ -52,9 +54,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private TargetHandler targetHandler;
     private int queueSize;
     private DisruptorConfig disruptorConfig;
+    private CarbonMessageProcessor carbonMessageProcessor;
+    private ResponseCallback responseCallback;
 
-    public SourceHandler(int queueSize) throws Exception {
+    public SourceHandler(CarbonMessageProcessor carbonMessageProcessor ,int queueSize) throws Exception {
         this.queueSize = queueSize;
+        this.carbonMessageProcessor = carbonMessageProcessor;
     }
 
     @Override
@@ -71,7 +76,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             cMsg = new CarbonMessage(Constants.PROTOCOL_NAME);
             cMsg.setPort(((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setHost(((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
-            ResponseCallback responseCallback = new ResponseCallback(this.ctx);
+             responseCallback = new ResponseCallback(this.ctx);
             cMsg.setCarbonCallback(responseCallback);
             HttpRequest httpRequest = (HttpRequest) msg;
             cMsg.setURI(httpRequest.getUri());
@@ -87,7 +92,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             if (disruptorConfig.isShared()) {
                 cMsg.setProperty(Constants.DISRUPTOR, disruptor);
             }
-            disruptor.publishEvent(new CarbonEventPublisher(cMsg));
+            //disruptor.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
@@ -95,6 +100,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
                     HttpContent httpContent = (HttpContent) msg;
                     chunk = new HTTPContentChunk(httpContent);
                     cMsg.getPipe().addContentChunk(chunk);
+                    if(msg instanceof LastHttpContent){
+                       carbonMessageProcessor.receive(cMsg,responseCallback);
+                    }
                 }
             }
         }

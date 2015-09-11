@@ -73,18 +73,23 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setProperty(Constants.TRANSPORT_HEADERS, Util.getHeaders(httpResponse));
 
-            ringBuffer.publishEvent(new CarbonEventPublisher(cMsg));
+          //  ringBuffer.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             HTTPContentChunk chunk;
             if (cMsg != null) {
                 if (msg instanceof LastHttpContent) {
                     LastHttpContent lastHttpContent = (LastHttpContent) msg;
                     chunk = new HTTPContentChunk(lastHttpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
+                    callback.done(cMsg);
+
                 } else {
                     DefaultHttpContent httpContent = (DefaultHttpContent) msg;
                     chunk = new HTTPContentChunk(httpContent);
+                    cMsg.getPipe().addContentChunk(chunk);
+
                 }
-                cMsg.getPipe().addContentChunk(chunk);
+              //  cMsg.getPipe().addContentChunk(chunk);
             }
         }
     }
