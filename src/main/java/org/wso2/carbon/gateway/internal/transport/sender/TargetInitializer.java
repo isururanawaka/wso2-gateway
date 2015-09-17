@@ -15,7 +15,6 @@
 
 package org.wso2.carbon.gateway.internal.transport.sender;
 
-import com.lmax.disruptor.RingBuffer;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -29,23 +28,13 @@ public class TargetInitializer extends ChannelInitializer<SocketChannel> {
     protected static final String HANDLER = "handler";
     private TargetHandler handler;
 
-    private RingBuffer ringBuffer;
-
-    private int queuesize;
-
-
-
-    public TargetInitializer(RingBuffer ringBuffer, int queuesize) {
-        this.ringBuffer = ringBuffer;
-        this.queuesize = queuesize;
-    }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpResponseDecoder());
         p.addLast("encoder", new HttpRequestEncoder());
-        handler = new TargetHandler(ringBuffer, queuesize);
+        handler = new TargetHandler();
         p.addLast(HANDLER, handler);
     }
 

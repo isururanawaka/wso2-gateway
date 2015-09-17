@@ -85,5 +85,8 @@ public class DisruptorConfig {
         disruptorMap.add(ringBuffer);
     }
 
+    public synchronized void notifyChannelInactive() {
+        index--;
+    }
 
 }

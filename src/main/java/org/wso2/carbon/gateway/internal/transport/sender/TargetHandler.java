@@ -45,11 +45,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private int queuesize;
 
 
-    public TargetHandler(RingBuffer ringBuffer, int queuesize) {
-        this.ringBuffer = ringBuffer;
-        this.queuesize = queuesize;
-    }
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
@@ -98,4 +93,11 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         this.callback = callback;
     }
 
+    public void setRingBuffer(RingBuffer ringBuffer) {
+        this.ringBuffer = ringBuffer;
+    }
+
+    public void setQueuesize(int queuesize) {
+        this.queuesize = queuesize;
+    }
 }

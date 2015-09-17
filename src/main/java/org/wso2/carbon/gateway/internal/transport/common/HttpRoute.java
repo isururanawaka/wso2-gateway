@@ -33,6 +33,13 @@ public class HttpRoute {
         return host + "-" + port;
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
 }
 
 

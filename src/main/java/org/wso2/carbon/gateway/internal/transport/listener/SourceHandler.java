@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.Pipe;
@@ -32,8 +33,8 @@ import org.wso2.carbon.gateway.internal.transport.common.Util;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorConfig;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.publisher.CarbonEventPublisher;
-import org.wso2.carbon.gateway.internal.transport.sender.TargetChanel;
-import org.wso2.carbon.gateway.internal.transport.sender.TargetHandler;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.TargetChannel;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.pool.ConnectionManager;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -48,13 +49,16 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private RingBuffer disruptor;
     private ChannelHandlerContext ctx;
     private CarbonMessage cMsg;
-    private Map<String, TargetChanel> channelFutureMap = new HashMap<>();
-    private TargetHandler targetHandler;
+    private ConnectionManager connectionManager;
+    private Map<String, TargetChannel> channelFutureMap = new HashMap<>();
+
     private int queueSize;
     private DisruptorConfig disruptorConfig;
+    private Map<String, GenericObjectPool> targetChannelPool;
 
-    public SourceHandler(int queueSize) throws Exception {
+    public SourceHandler(int queueSize , ConnectionManager connectionManager) throws Exception {
         this.queueSize = queueSize;
+        this.connectionManager = connectionManager;
     }
 
     @Override
@@ -62,6 +66,8 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         disruptorConfig = DisruptorFactory.getDisruptorConfig(DisruptorFactory.DisruptorType.INBOUND);
         disruptor = disruptorConfig.getDisruptor();
         this.ctx = ctx;
+        this.targetChannelPool = connectionManager.getTargetChannelPool();
+
     }
 
     @SuppressWarnings("unchecked")
@@ -102,10 +108,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+        disruptorConfig.notifyChannelInactive();
+        connectionManager.notifyChannelInactive();
     }
 
-    public void addChannelFuture(HttpRoute route, TargetChanel targetChanel) {
-        channelFutureMap.put(route.toString(), targetChanel);
+    public void addTargetChannel(HttpRoute route, TargetChannel targetChannel) {
+        channelFutureMap.put(route.toString(), targetChannel);
     }
 
     public void removeChannelFuture(HttpRoute route) {
@@ -113,16 +121,18 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         channelFutureMap.remove(route.toString());
     }
 
-    public TargetChanel getChannelFuture(HttpRoute route) {
+    public TargetChannel getChannel(HttpRoute route) {
         return channelFutureMap.get(route.toString());
     }
 
-    public TargetHandler getTargetHandler() {
-        return targetHandler;
+
+
+    public Map<String, GenericObjectPool> getTargetChannelPool() {
+        return targetChannelPool;
     }
 
-    public void setTargetHandler(TargetHandler targetHandler) {
-        this.targetHandler = targetHandler;
+    public ChannelHandlerContext getInboundChannelContext() {
+        return ctx;
     }
 
     @Override

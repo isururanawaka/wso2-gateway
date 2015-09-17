@@ -64,4 +64,36 @@ public class Constants {
 
     public static final String SHARE_DISRUPTOR_WITH_OUTBOUND = "share.disruptor.with.outbound";
 
+
+    // Bootstrap related
+    public static final String CLINET_BOOTSTRAP_TCP_NO_DELY = "client.bootstrap.nodelay";
+
+    public static final String CLINET_BOOTSTRAP_KEEPALIVE = "client.bootstrap.keepalive";
+
+    public static final String CLINET_BOOTSTRAP_SEND_BUFFER_SIZE = "client.bootstrap.sendbuffersize";
+
+    public static final String CLINET_BOOTSTRAP_RECEIVE_BUFFER_SIZE = "client.bootstrap.recievebuffersize";
+
+    public static final String CLINET_BOOTSTRAP_CONNECT_TIME_OUT = "client.bootstrap.connect.timeout";
+
+    public static final String CLINET_BOOTSTRAP_SO_REUSE = "client.bootstrap.socket.reuse";
+
+
+    // Connection Pool parameters
+
+    public static final String NUMBER_OF_POOLS = "connection.pool.count";
+
+    public static final String MAX_ACTIVE_CONNECTIONS_PER_POOL = "max.active.connections.per.pool";
+
+    public static final String MIN_IDLE_CONNECTIONS_PER_POOL = "min.idle.connections.per.pool";
+
+    public static final String MAX_IDLE_CONNECTIONS_PER_POOL = "max.idle.connections.per.pool";
+
+    public static final String MIN_EVICTION_IDLE_TIME = "min.eviction.idle.time";
+
+    public static final String ENABLE_GLOBAL_CONNECTION_POOLING = "enable.global.client.connection.pooling";
+
+
 }
+
+

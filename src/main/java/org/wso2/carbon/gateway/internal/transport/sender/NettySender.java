@@ -16,15 +16,12 @@
 package org.wso2.carbon.gateway.internal.transport.sender;
 
 import com.lmax.disruptor.RingBuffer;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.gateway.internal.common.CarbonCallback;
 import org.wso2.carbon.gateway.internal.common.CarbonMessage;
 import org.wso2.carbon.gateway.internal.common.TransportSender;
@@ -35,19 +32,24 @@ import org.wso2.carbon.gateway.internal.transport.common.Util;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorConfig;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.listener.SourceHandler;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.TargetChannel;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.pool.ConnectionManager;
 import org.wso2.carbon.transport.http.netty.listener.ssl.SSLConfig;
-
-import java.net.InetSocketAddress;
 
 /**
  * A class creates connections with BE and send messages.
  */
 public class NettySender implements TransportSender {
+
+    private static final Logger log = LoggerFactory.getLogger(NettySender.class);
     private Config config;
 
+    private ConnectionManager connectionManager;
 
-    public NettySender(Config conf) {
+
+    public NettySender(Config conf, ConnectionManager connectionManager) {
         this.config = conf;
+        this.connectionManager = connectionManager;
     }
 
 
@@ -58,43 +60,39 @@ public class NettySender implements TransportSender {
 
         final HttpRoute route = new HttpRoute(msg.getHost(), msg.getPort());
 
-        if (!isRouteExists(route, msg)) {
+        SourceHandler srcHandler = (SourceHandler) msg.getProperty(Constants.SRC_HNDLR);
 
-            createAndCacheNewConnection(msg, route, config.getQueueSize(), callback, httpRequest);
-
-        } else {
-
-            writeUsingExistingConnection(msg, httpRequest, route, callback);
+        RingBuffer ringBuffer = (RingBuffer) msg.getProperty(Constants.DISRUPTOR);
+        if (ringBuffer == null) {
+            DisruptorConfig disruptorConfig = DisruptorFactory.
+                       getDisruptorConfig(DisruptorFactory.DisruptorType.OUTBOUND);
+            ringBuffer = disruptorConfig.getDisruptor();
         }
-        return false;
+
+        Channel outboundChannel = null;
+
+        try {
+            TargetChannel targetChannel = connectionManager.getTargetChannel(route, srcHandler);
+            outboundChannel = targetChannel.getChannel();
+            targetChannel.getTargetHandler().setCallback(callback);
+            targetChannel.getTargetHandler().setRingBuffer(ringBuffer);
+            targetChannel.getTargetHandler().setQueuesize(config.queueSize);
+
+            boolean written = writeContent(outboundChannel, httpRequest, msg);
+            if (written) {
+                connectionManager.returnChannel(route, outboundChannel, srcHandler);
+            }
+
+
+        } catch (Exception e) {
+            log.error("Cannot processed Request to host " + route.toString(), e);
+        }
+
+        return true;
     }
 
 
-    private void addCloseListener(Channel ch, final SourceHandler handler, final HttpRoute route) {
-        ChannelFuture closeFuture = ch.closeFuture();
-        closeFuture.addListener(future -> handler.removeChannelFuture(route));
-    }
-
-
-    private Bootstrap getNewBootstrap(ChannelHandlerContext ctx, TargetInitializer targetInitializer) {
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(ctx.channel().eventLoop())
-                   .channel(ctx.channel().getClass())
-                   .handler(targetInitializer);
-        bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000);
-        bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
-        bootstrap.option(ChannelOption.SO_RCVBUF, 1048576);
-        return bootstrap;
-    }
-
-
-    private boolean isRouteExists(HttpRoute httpRoute, CarbonMessage carbonMessage) {
-        final SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
-        return srcHandler.getChannelFuture(httpRoute) != null;
-    }
-
-    private void writeContent(Channel channel, HttpRequest httpRequest, CarbonMessage carbonMessage) {
+    private boolean writeContent(Channel channel, HttpRequest httpRequest, CarbonMessage carbonMessage) {
         channel.write(httpRequest);
         while (true) {
             HTTPContentChunk chunk = (HTTPContentChunk) carbonMessage.getPipe().getContent();
@@ -107,71 +105,9 @@ public class NettySender implements TransportSender {
                 channel.write(httpContent);
             }
         }
-
+        return true;
     }
 
-    //create and cache new connections for BE and cache it in httproute map in channel for later use.
-    private void createAndCacheNewConnection(CarbonMessage carbonMessage, HttpRoute route, int queueSize,
-                                             CarbonCallback carbonCallback, HttpRequest httpRequest) {
-        SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
-        ChannelHandlerContext inboundCtx = (ChannelHandlerContext) carbonMessage.getProperty(Constants.CHNL_HNDLR_CTX);
-
-        RingBuffer ringBuffer = (RingBuffer) carbonMessage.getProperty(Constants.DISRUPTOR);
-        if (ringBuffer == null) {
-            DisruptorConfig disruptorConfig = DisruptorFactory.
-                       getDisruptorConfig(DisruptorFactory.DisruptorType.OUTBOUND);
-            ringBuffer = disruptorConfig.getDisruptor();
-        }
-        TargetInitializer targetInitializer =
-                   new TargetInitializer(ringBuffer, queueSize);
-        Bootstrap bootstrap = getNewBootstrap(inboundCtx, targetInitializer);
-        InetSocketAddress inetSocketAddress = new InetSocketAddress
-                   (carbonMessage.getHost(), carbonMessage.getPort());
-        ChannelFuture future = bootstrap.connect(inetSocketAddress);
-        final Channel outboundChannel = future.channel();
-        addCloseListener(outboundChannel, srcHandler, route);
-        TargetChanel targetChanel = new TargetChanel();
-        srcHandler.addChannelFuture(route, targetChanel);
-
-        future.addListener(new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.isSuccess()) {
-                    srcHandler.setTargetHandler(targetInitializer.getTargetHandler());
-                    targetInitializer.getTargetHandler().setCallback(carbonCallback);
-
-                    writeContent(outboundChannel, httpRequest, carbonMessage);
-
-                    srcHandler.getChannelFuture(route).setChannelFuture(future);
-
-                } else {
-                    outboundChannel.close();
-                }
-            }
-        });
-
-    }
-
-
-    private void writeUsingExistingConnection(CarbonMessage carbonMessage, HttpRequest httpRequest, HttpRoute route,
-                                              CarbonCallback carbonCallback) {
-        SourceHandler srcHandler = (SourceHandler) carbonMessage.getProperty(Constants.SRC_HNDLR);
-
-        TargetChanel targetChanel = srcHandler.getChannelFuture(route);
-
-        srcHandler.getTargetHandler().setCallback(carbonCallback);
-
-        if (targetChanel.getChannelFuture().isSuccess() && targetChanel.getChannelFuture().channel().isActive()) {
-
-            writeContent(targetChanel.getChannelFuture().channel(), httpRequest, carbonMessage);
-
-        } else {
-
-            //handle closed connections
-            srcHandler.removeChannelFuture(route);
-
-            createAndCacheNewConnection(carbonMessage, route, config.getQueueSize(), carbonCallback, httpRequest);
-        }
-    }
 
     /**
      * Class representing configs related to Transport Sender.

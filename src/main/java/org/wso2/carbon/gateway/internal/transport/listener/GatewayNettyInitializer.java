@@ -30,6 +30,9 @@ import org.wso2.carbon.gateway.internal.transport.common.Constants;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorConfig;
 import org.wso2.carbon.gateway.internal.transport.common.disruptor.config.DisruptorFactory;
 import org.wso2.carbon.gateway.internal.transport.sender.NettySender;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.BootstrapConfiguration;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.pool.ConnectionManager;
+import org.wso2.carbon.gateway.internal.transport.sender.channel.pool.PoolConfiguration;
 import org.wso2.carbon.transport.http.netty.listener.CarbonNettyServerInitializer;
 
 import java.io.File;
@@ -44,9 +47,10 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
 
     private static final Logger log = Logger.getLogger(GatewayNettyInitializer.class);
     private int queueSize = 32544;
+    private ConnectionManager connectionManager;
 
     public static final String CAMEL_ROUTING_CONFIG_FILE = "repository" + File.separator + "conf" + File.separator +
-            "camel" + File.separator + "camel-routing.xml";
+                                                           "camel" + File.separator + "camel-routing.xml";
 
     public GatewayNettyInitializer() {
 
@@ -56,7 +60,12 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
     public void setup(Map<String, String> parameters) {
 
         NettySender.Config config = new NettySender.Config("netty-gw-sender").setQueueSize(this.queueSize);
-        TransportSender sender = new NettySender(config);
+        BootstrapConfiguration.createBootStrapConfiguration(parameters);
+        PoolConfiguration.createPoolConfiguration(parameters);
+
+        connectionManager = ConnectionManager.getInstance();
+
+        TransportSender sender = new NettySender(config, connectionManager);
         CamelContext context = new DefaultCamelContext();
         context.disableJMX();
         CamelMediationEngine engine = new CamelMediationEngine(sender);
@@ -88,7 +97,7 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
                                            parameters.get(Constants.DISRUPTOR_EVENT_HANDLER_COUNT),
                                            parameters.get(Constants.WAIT_STRATEGY),
                                            Boolean.parseBoolean(Constants.SHARE_DISRUPTOR_WITH_OUTBOUND));
-            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig , engine);
+            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig, engine);
             String queueSize = parameters.get(Constants.CONTENT_QUEUE_SIZE);
             if (queueSize != null) {
                 this.queueSize = Integer.parseInt(queueSize);
@@ -96,7 +105,7 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         } else {
             log.warn("Disruptor specific parameters are not specified in configuration hence using default configs");
             DisruptorConfig disruptorConfig = new DisruptorConfig();
-            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig , engine);
+            DisruptorFactory.createDisruptors(DisruptorFactory.DisruptorType.INBOUND, disruptorConfig, engine);
         }
 
 
@@ -110,12 +119,12 @@ public class GatewayNettyInitializer implements CarbonNettyServerInitializer {
         ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
-            try {
-                p.addLast("handler", new SourceHandler(queueSize));
-            } catch (Exception e) {
-                log.error("Cannot Create SourceHandler ", e);
-            }
+        try {
+            p.addLast("handler", new SourceHandler(queueSize, connectionManager));
+        } catch (Exception e) {
+            log.error("Cannot Create SourceHandler ", e);
         }
+    }
 
 
 }
