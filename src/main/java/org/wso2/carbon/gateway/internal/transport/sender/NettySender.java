@@ -78,6 +78,7 @@ public class NettySender implements TransportSender {
             targetChannel.getTargetHandler().setRingBuffer(ringBuffer);
             targetChannel.getTargetHandler().setQueuesize(config.queueSize);
             targetChannel.getTargetHandler().setTargetChannel(targetChannel);
+            targetChannel.getTargetHandler().setConnectionManager(connectionManager);
 
 
              writeContent(outboundChannel, httpRequest, msg);

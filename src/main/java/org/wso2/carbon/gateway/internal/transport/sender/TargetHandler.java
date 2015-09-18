@@ -52,7 +52,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        this.connectionManager = ConnectionManager.getInstance();
     }
 
     @SuppressWarnings("unchecked")
@@ -107,7 +106,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         this.queuesize = queuesize;
     }
 
-
+    public void setConnectionManager(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
 
     public void setTargetChannel(TargetChannel targetChannel) {
         this.targetChannel = targetChannel;
