@@ -77,11 +77,11 @@ public class NettySender implements TransportSender {
             targetChannel.getTargetHandler().setCallback(callback);
             targetChannel.getTargetHandler().setRingBuffer(ringBuffer);
             targetChannel.getTargetHandler().setQueuesize(config.queueSize);
+            targetChannel.getTargetHandler().setTargetChannel(targetChannel);
 
-            boolean written = writeContent(outboundChannel, httpRequest, msg);
-            if (written) {
-                connectionManager.returnChannel(route, outboundChannel, srcHandler);
-            }
+
+             writeContent(outboundChannel, httpRequest, msg);
+
 
 
         } catch (Exception e) {

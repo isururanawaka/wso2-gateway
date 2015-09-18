@@ -17,6 +17,8 @@ package org.wso2.carbon.gateway.internal.transport.sender.channel;
 
 
 import io.netty.channel.Channel;
+import org.wso2.carbon.gateway.internal.transport.common.HttpRoute;
+import org.wso2.carbon.gateway.internal.transport.listener.SourceHandler;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetHandler;
 import org.wso2.carbon.gateway.internal.transport.sender.TargetInitializer;
 
@@ -31,6 +33,10 @@ public class TargetChannel {
     private TargetHandler targetHandler;
 
     private TargetInitializer targetInitializer;
+
+    private HttpRoute httpRoute;
+
+    private SourceHandler correlatedSource;
 
 
     public Channel getChannel() {
@@ -56,5 +62,21 @@ public class TargetChannel {
 
     public void setTargetInitializer(TargetInitializer targetInitializer) {
         this.targetInitializer = targetInitializer;
+    }
+
+    public HttpRoute getHttpRoute() {
+        return httpRoute;
+    }
+
+    public void setHttpRoute(HttpRoute httpRoute) {
+        this.httpRoute = httpRoute;
+    }
+
+    public SourceHandler getCorrelatedSource() {
+        return correlatedSource;
+    }
+
+    public void setCorrelatedSource(SourceHandler correlatedSource) {
+        this.correlatedSource = correlatedSource;
     }
 }

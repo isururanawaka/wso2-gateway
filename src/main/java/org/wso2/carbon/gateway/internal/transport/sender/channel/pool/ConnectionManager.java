@@ -71,9 +71,8 @@ public class ConnectionManager {
     }
 
 
-
-    private GenericObjectPool createPoolForRoute(HttpRoute httpRoute, TargetChannel targetChannel,
-                                                 EventLoopGroup eventLoopGroup, Class eventLoopClass) {
+    private GenericObjectPool createPoolForRoute(HttpRoute httpRoute, EventLoopGroup eventLoopGroup,
+                                                 Class eventLoopClass) {
         GenericObjectPool.Config config = new GenericObjectPool.Config();
         config.maxActive = poolConfiguration.getMaxActivePerPool();
         config.maxIdle = poolConfiguration.getMaxIdlePerPool();
@@ -105,7 +104,8 @@ public class ConnectionManager {
 
     /**
      * Provide target channel for given http route
-     * @param httpRoute BE address
+     *
+     * @param httpRoute     BE address
      * @param sourceHandler Incoming channel
      * @return
      * @throws Exception
@@ -123,8 +123,7 @@ public class ConnectionManager {
             Map<String, GenericObjectPool> objectPoolMap = sourceHandler.getTargetChannelPool();
             GenericObjectPool pool = objectPoolMap.get(httpRoute.toString());
             if (pool == null) {
-                targetChannel = new TargetChannel();
-                pool = createPoolForRoute(httpRoute, targetChannel, group, cl);
+                pool = createPoolForRoute(httpRoute, group, cl);
                 objectPoolMap.put(httpRoute.toString(), pool);
             }
             try {
@@ -172,18 +171,23 @@ public class ConnectionManager {
 
 
         }
+        if (targetChannel != null) {
+            targetChannel.setHttpRoute(httpRoute);
+            targetChannel.setCorrelatedSource(sourceHandler);
+        }
         return targetChannel;
     }
 
 
     //Add connection to Pool back
-    public void returnChannel(HttpRoute httpRoute, Channel channel, SourceHandler sourceHandler) {
+    public void returnChannel(TargetChannel targetChannel) {
         if (poolManagementPolicy == PoolManagementPolicy.GLOBAL_ENDPOINT_CONNECTION_CACHING) {
-            Map<String, GenericObjectPool> objectPoolMap = sourceHandler.getTargetChannelPool();
-            GenericObjectPool pool = objectPoolMap.get(httpRoute.toString());
+            Map<String, GenericObjectPool> objectPoolMap = targetChannel.getCorrelatedSource().getTargetChannelPool();
+            GenericObjectPool pool = objectPoolMap.get(targetChannel.getHttpRoute().toString());
             try {
-                if (channel.isActive()) {
-                    pool.returnObject(channel);
+                if (targetChannel.getChannel().isActive()) {
+                    pool.returnObject(targetChannel);
+
                 }
             } catch (Exception e) {
                 log.error("Cannot return channel to pool", e);
@@ -200,6 +204,7 @@ public class ConnectionManager {
 
     /**
      * Provide specific target channel map
+     *
      * @return Map contains pools for each route
      */
     public Map<String, GenericObjectPool> getTargetChannelPool() {
@@ -213,7 +218,6 @@ public class ConnectionManager {
         }
         return null;
     }
-
 
 
     public void notifyChannelInactive() {

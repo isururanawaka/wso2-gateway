@@ -42,7 +42,7 @@ public class PoolConfiguration {
 
     private long minEvictableIdleTime = 5 * 60 * 1000L;
 
-    private byte exhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
+    private byte exhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_GROW;
 
     private int numberOfPools = 0;
 
