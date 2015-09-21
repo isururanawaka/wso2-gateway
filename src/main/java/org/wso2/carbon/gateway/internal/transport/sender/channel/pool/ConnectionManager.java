@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class which handles connection pool management
@@ -50,7 +51,7 @@ public class ConnectionManager {
 
     private PoolManagementPolicy poolManagementPolicy;
 
-    private int index = 1;
+    private AtomicInteger index = new AtomicInteger(1);
 
 
     private ConnectionManager(PoolConfiguration poolConfiguration) {
@@ -209,12 +210,8 @@ public class ConnectionManager {
      */
     public Map<String, GenericObjectPool> getTargetChannelPool() {
         if (poolManagementPolicy == PoolManagementPolicy.GLOBAL_ENDPOINT_CONNECTION_CACHING) {
-            synchronized (mapList) {
-                int ind = index % poolCount;
-                index++;
+            int ind = index.getAndIncrement() % poolCount;
                 return mapList.get(ind);
-            }
-
         }
         return null;
     }
@@ -222,9 +219,7 @@ public class ConnectionManager {
 
     public void notifyChannelInactive() {
         if (poolManagementPolicy == PoolManagementPolicy.GLOBAL_ENDPOINT_CONNECTION_CACHING) {
-            synchronized (mapList) {
-                index--;
-            }
+            index.getAndDecrement();
         }
     }
 

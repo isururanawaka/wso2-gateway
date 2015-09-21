@@ -20,6 +20,7 @@ import org.wso2.carbon.gateway.internal.transport.common.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class represents the disruptor configuration.
@@ -32,7 +33,7 @@ public class DisruptorConfig {
     private String disruptorWaitStrategy;
     private boolean notShared;
     private List<RingBuffer> disruptorMap = new ArrayList<>();
-    private int index = 1;
+    private AtomicInteger index = new AtomicInteger(0);
 
     public DisruptorConfig() {
 
@@ -75,18 +76,17 @@ public class DisruptorConfig {
         return !notShared;
     }
 
-    public synchronized RingBuffer getDisruptor() {
-        int ind = index % noDisruptors;
-        index++;
-        return disruptorMap.get(ind);
+    public RingBuffer getDisruptor() {
+        int ind = index.getAndIncrement() % noDisruptors;
+            return disruptorMap.get(ind);
     }
 
     public void addDisruptor(RingBuffer ringBuffer) {
         disruptorMap.add(ringBuffer);
     }
 
-    public synchronized void notifyChannelInactive() {
-        index--;
+    public void notifyChannelInactive() {
+        index.getAndDecrement();
     }
 
 }
